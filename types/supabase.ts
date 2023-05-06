@@ -11,51 +11,51 @@ export interface Database {
     Tables: {
       bills: {
         Row: {
-          activity: string | null
-          amount: number | null
-          booked: boolean | null
+          activity: string
+          amount: number
+          booked: boolean
           created_at: string | null
           date: string | null
-          desc: string | null
-          iban: string | null
+          desc: string
+          iban: string
           id: number
-          image: string | null
-          name: string | null
-          paid: boolean | null
-          payment_method: string | null
-          post: string | null
+          image: string
+          name: string
+          paid: boolean
+          payment_method: string
+          post: string
           uid: string | null
         }
         Insert: {
-          activity?: string | null
-          amount?: number | null
-          booked?: boolean | null
+          activity?: string
+          amount?: number
+          booked?: boolean
           created_at?: string | null
           date?: string | null
-          desc?: string | null
-          iban?: string | null
+          desc?: string
+          iban?: string
           id?: number
-          image?: string | null
-          name?: string | null
-          paid?: boolean | null
-          payment_method?: string | null
-          post?: string | null
+          image?: string
+          name?: string
+          paid?: boolean
+          payment_method?: string
+          post?: string
           uid?: string | null
         }
         Update: {
-          activity?: string | null
-          amount?: number | null
-          booked?: boolean | null
+          activity?: string
+          amount?: number
+          booked?: boolean
           created_at?: string | null
           date?: string | null
-          desc?: string | null
-          iban?: string | null
+          desc?: string
+          iban?: string
           id?: number
-          image?: string | null
-          name?: string | null
-          paid?: boolean | null
-          payment_method?: string | null
-          post?: string | null
+          image?: string
+          name?: string
+          paid?: boolean
+          payment_method?: string
+          post?: string
           uid?: string | null
         }
       }

@@ -22,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return
     }
 
-
     const fontSize = 13
     const bill = bills[0]
 
@@ -60,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         size: fontSize
     });
 
-    page.drawText(bill.date, {
+    page.drawText(bill.date ? bill.date : "", {
         x: 162,
         y: 750,
         size: fontSize
@@ -112,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pdfBytes = await doc.save()
     res.setHeader('Content-Disposition', `attachment; filename="rekening-${bill.desc}.pdf"`);
     res.setHeader('Content-Type', 'application/pdf');
-    const pdfBuffer = new Buffer(pdfBytes);
+    const pdfBuffer = Buffer.from(pdfBytes);
     res.send(pdfBuffer);
 }
 
