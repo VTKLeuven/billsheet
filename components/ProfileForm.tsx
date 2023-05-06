@@ -35,7 +35,7 @@ export default function ProfileForm({ session }: { session: Session }) {
 
     useEffect(() => {
         getProfile();
-    }, [session]);
+    }, [session, getProfile]);
 
     async function getProfile() {
         try {

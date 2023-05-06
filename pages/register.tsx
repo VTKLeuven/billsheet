@@ -5,9 +5,9 @@ import RegistrationForm from "../components/RegistrationForm";
 
 export default function Home() {
     const session = useSession();
+    const router = useRouter()
 
     if (session) {
-        const router = useRouter()
         router.push("/");
     }
 

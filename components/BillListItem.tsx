@@ -24,7 +24,7 @@ export default function BillListItem({ bill }: IBillListItem) {
                 { bill.amount ? <>{Math.floor(bill.amount/100) },{bill.amount % 100}</>: "0,00"} 
             </td>
             <td>
-                <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" download>
+                <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" rel="noreferrer" download>
                     <AiOutlineDownload/>
                 </a>
             </td>
