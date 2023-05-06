@@ -21,7 +21,7 @@ export default function BillListItem({ bill }: IBillListItem) {
                 {bill.date}
             </td>
             <td>
-                { bill.amount ? <>{Math.floor(bill.amount/100) },{bill.amount % 100}</>: "0,00"} 
+                € { bill.amount ? <>{(bill.amount / 100).toFixed(2)}</>: "0.00"} 
             </td>
             <td>
                 <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" rel="noreferrer" download>

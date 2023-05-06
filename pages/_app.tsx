@@ -4,6 +4,7 @@ import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import { useState } from 'react'
 import { Open_Sans } from '@next/font/google'
 import { MantineProvider, createEmotionCache } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 import Head from 'next/head'
 
 const open_sans = Open_Sans({subsets: ['latin']})
@@ -46,6 +47,7 @@ export default function App({ Component, pageProps }: any) {
                         }
                     }}>
                     <main className={open_sans.className}>
+                        <Notifications />
                         <Component {...pageProps} />
                     </main>
                 </MantineProvider>

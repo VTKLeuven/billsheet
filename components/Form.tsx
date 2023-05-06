@@ -1,5 +1,5 @@
-import { Alert, Button, FileInput, Select, TextInput } from "@mantine/core";
-import { DatePicker } from "@mantine/dates";
+import { Alert, Button, FileInput, NumberInput, Select, TextInput } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useState } from "react";
@@ -15,10 +15,10 @@ export default function Form() {
         initialValues: {
             name: "",
             post: "",
-            date: Date.now(),
+            date: new Date(),
             activity: "",
             desc: "",
-            amount: 0,
+            amount: "",
             paymentMethod: "vtk",
             iban: "",
             photo: new File([""], "Selecteer bestand")
@@ -133,10 +133,10 @@ export default function Form() {
                 <div className="flex flex-col space-y-4 justify-center content-center">
                     <TextInput label="Naam" withAsterisk {...form.getInputProps("name")} />
                     <Select label="Post" data={posts} withAsterisk {...form.getInputProps("post")} />
-                    <DatePicker label="Datum Uitgave" withAsterisk defaultValue={Date.now()} {...form.getInputProps("date")} />
+                    <DatePickerInput label="Datum Uitgave" withAsterisk {...form.getInputProps("date")}/>
                     <TextInput label="Activiteit" withAsterisk {...form.getInputProps("activity")} />
                     <TextInput label="Omschrijving" withAsterisk {...form.getInputProps("desc")} />
-                    <TextInput type="number" placeholer="69,00" label="Bedrag" withAsterisk {...form.getInputProps("amount")} />
+                    <NumberInput label="Bedrag" min={0} precision={2} placeholder="10.23" withAsterisk {...form.getInputProps("amount")} />
                     <Select label="Betaalmethode" withAsterisk defaultValue="vtk"
                         data={[{ value: "vtk", label: "Kaart VTK" },
                         { value: "personal", label: "Persoonlijk" }]}

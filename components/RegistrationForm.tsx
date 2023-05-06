@@ -1,4 +1,5 @@
 import { Button, Select, TextInput } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 
 export default function RegistrationForm() {
@@ -39,6 +40,10 @@ export default function RegistrationForm() {
         if (result.error) {
             setError(result.error);
         } else {
+            notifications.show({
+                title: "Registratie gelukt",
+                message: "Gelieve uw email te bevestigen alvorens in te loggen."
+            })
             setError("");
             window.location.href = "/";
         }

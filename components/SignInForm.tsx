@@ -8,7 +8,7 @@ import { useState } from "react";
 export default function SignInForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [incorrectPw, setIncorrectPw] = useState(false)
+    const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
     const supabase = useSupabaseClient()
     const router = useRouter()
@@ -22,10 +22,12 @@ export default function SignInForm() {
         })
         console.log(data,error)
         if (data.user) {
-            setIncorrectPw(false)
+            setError("")
             router.push("/")
-        } else {
-            setIncorrectPw(true)
+            return;
+        } 
+        if (error) {
+            setError(error.message)
         }
         setLoading(false)
     }
@@ -43,7 +45,7 @@ export default function SignInForm() {
             <Button color="vtk-yellow.5" onClick={signIn}>Inloggen</Button>
                 
 
-            {incorrectPw ? <span className="flex justify-center text-red-600">Email of/en wachtwoord onjuist</span> : <></>}
+            {error ? <span className="flex justify-center text-red-600">{error}</span> : <></>}
             <Link href="/register">
                 <span className="flex justify-center underline text-slate-500">Nog geen account?</span>
             </Link>
