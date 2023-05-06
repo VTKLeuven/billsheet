@@ -11,7 +11,7 @@ export default function Form() {
     const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
 
-    const form = useForm({
+    const form: any = useForm({
         initialValues: {
             name: "",
             post: "",
@@ -24,7 +24,7 @@ export default function Form() {
             photo: new File([""], "Selecteer bestand")
         },
         validate: {
-            email: isNotEmpty("Dit veld is verplicht"),
+            name: isNotEmpty("Dit veld is verplicht"),
             post: isNotEmpty("Dit veld is verplicht"),
             date: isNotEmpty("Dit veld is verplicht"),
             activity: isNotEmpty("Dit veld is verplicht"),
