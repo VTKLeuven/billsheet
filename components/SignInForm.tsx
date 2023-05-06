@@ -31,7 +31,7 @@ export default function SignInForm() {
     }
 
     return (
-        <form className="flex content-center justify-content flex-col space-y-4" onSubmit={signIn}>
+        <form className="flex content-center justify-content flex-col space-y-4 min-w-[25em]" onSubmit={signIn}>
             <TextInput 
                 label="Email" 
                 placeholder="voornaam.naam@vtk.be"
@@ -44,7 +44,7 @@ export default function SignInForm() {
                 
 
             {incorrectPw ? <span className="flex justify-center text-red-600">Email of/en wachtwoord onjuist</span> : <></>}
-            <Link href="/">
+            <Link href="/register">
                 <span className="flex justify-center underline text-slate-500">Nog geen account?</span>
             </Link>
         </form>

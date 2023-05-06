@@ -32,18 +32,16 @@ export default function Home() {
                 .select()
                 .eq("id", user.id)
                 .single();
-            console.log(profile, error, status);
             if (profile.name && profile.post) {
                 setProfile(profile);
             }
         } catch (error) {
-            console.log(error);
         }
     }
 
     return (
         <div className="flex min-w-full min-h-full object-fill justify-center align-center m-10">
-            {!session ? <AuthUI /> : <>{!profile ? <ProfileForm session={session}/> : <Form profile={profile} />}</>}
+            {session ? <Form/> : <AuthUI /> }
         </div>
     );
 }

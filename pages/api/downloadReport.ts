@@ -16,50 +16,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .eq('id', req.query.id)
                     .limit(1)
 
-
-
     if (error) {
         console.log(error)
-        res.status(500)
+        res.status(500).json({ error: error.message })
         return
     }
 
-    const fontSize = 13
 
+    const fontSize = 13
     const bill = bills[0]
-    console.log(bill)
-    const activity: string = {bill.activity ? bill.activity : ""}
-    page.drawText(activity, { x: 355,
+
+    const { data: photo, error: photoError } = await supabase.storage
+        .from("bill_images")
+        .download(bill.image)
+
+    if (photoError) {
+        console.log(photoError)
+        res.status(500).json({ error: photoError.message })
+        return
+    }
+
+    page.drawText(bill.activity, { x: 355,
         y: 805,
         size: fontSize
     });
 
-    page.drawText(body.desc[0], {
+    page.drawText(bill.desc, {
         x: 195,
         y: 786,
         size: fontSize
     });
 
-    page.drawText(body.post[0], {
+    page.drawText(bill.post, {
         x: 150,
         y: 805,
         size: fontSize
     });
 
 
-    page.drawText(body.name[0], {
+    page.drawText(bill.name, {
         x: 150,
         y: 768,
         size: fontSize
     });
 
-    page.drawText(body.date[0], {
+    page.drawText(bill.date, {
         x: 162,
         y: 750,
         size: fontSize
     });
 
-    if (body.payment_method[0] === "vtk") {
+    if (bill.payment_method === "vtk") {
         page.drawText("X", {
             x: 232,
             y: 732,
@@ -72,11 +79,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             size: fontSize
         });
 
-        if (body.iban[0] == null) {
-            body.iban[0] = "";
+        if (bill.iban == null) {
+            bill.iban = "";
         }
 
-        page.drawText(body.iban[0], {
+        page.drawText(bill.iban, {
             x: 155,
             y: 715,
             size: fontSize
@@ -85,12 +92,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
     // Afmetingen:590x600 
-    const filename = req.files.photo[0].originalFilename
+    const filename = bill.image
+    const imageBuffer = await photo.arrayBuffer()
     var image = null;
     if (filename.endsWith('jpg') || filename.endsWith("jpeg")) {
-        image = await doc.embedJpg(readFileSync(req.files.photo[0].path));
+        image = await doc.embedJpg(imageBuffer);
     } else {
-        image = await doc.embedPng(readFileSync(req.files.photo[0].path));
+        image = await doc.embedPng(imageBuffer);
     }
 
     const scaledDims = image.scaleToFit(580, 570);
@@ -101,10 +109,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         height: scaledDims.height,
         rotate: degrees(-90)
     })
-
-    writeFileSync("/home/rubenh/code/rekeningen/public/rekeningen/result.pdf", await doc.save());
+    const pdfBytes = await doc.save()
+    res.setHeader('Content-Disposition', `attachment; filename="rekening-${bill.desc}.pdf"`);
     res.setHeader('Content-Type', 'application/pdf');
-    res.send(await doc.save())
+    const pdfBuffer = new Buffer(pdfBytes);
+    res.send(pdfBuffer);
 }
 
-
+export const config = {
+    api: { bodyParser: false, },
+};

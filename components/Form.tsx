@@ -4,12 +4,11 @@ import { isNotEmpty, useForm } from "@mantine/form";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import { v4 } from "uuid";
-import { Profile } from "../types";
 
 
-export default function Form({ profile }: { profile: Profile }) {
+export default function Form() {
     const supabase = useSupabaseClient();
-    const [errorAlert, setErrorAlert] = useState(false)
+    const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
 
     const form = useForm({
@@ -70,7 +69,7 @@ export default function Form({ profile }: { profile: Profile }) {
         const user = await supabase.auth.getUser()
 
         if (!user.data.user) {
-            setErrorAlert(true)
+            setErrorAlert("Je bent niet ingelogd")
             setSuccessAlert(false)
             return
         }
@@ -91,10 +90,10 @@ export default function Form({ profile }: { profile: Profile }) {
             })
         if (!error) {
             setSuccessAlert(true)
-            setErrorAlert(false)
+            setErrorAlert("")
             form.reset()
         } else {
-            setErrorAlert(true)
+            setErrorAlert(error.message)
             setSuccessAlert(false)
         }
     }
@@ -118,14 +117,14 @@ export default function Form({ profile }: { profile: Profile }) {
     
     function formatDate(timestamp: number) {
         const date = new Date(timestamp)
-        return date.getFullYear() + "-" + ("0" + date.getMonth() + 1).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
+        return date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
     }
 
 
     return (
-        <div className="flex justify-center align-center rounded-lg p-10 min-w-[50%]">
+        <div className="flex justify-center align-center rounded-lg p-10 min-w-[25em]">
             <form
-                className="flex align-center flex-col"
+                className="flex align-center flex-col min-w-[25em]"
             >
                 <h1 className="text-3xl font-bold border-b-4 border-vtk-yellow m-6">
                     Rekeningenblad
@@ -159,7 +158,7 @@ export default function Form({ profile }: { profile: Profile }) {
                         }
                     { errorAlert ? 
                         <Alert title="Error" color="red">
-                            Er ging iets mis, probeer later opnieuw
+                            {errorAlert}
                         </Alert> : <></> 
                         }
 

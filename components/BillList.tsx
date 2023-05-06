@@ -19,6 +19,9 @@ export default function BillList({ billList }: IBillList) {
                             <b>Omschrijving</b>
                         </td>
                         <td>
+                            <b>Event</b>
+                        </td>
+                        <td>
                             <b>Naam</b>
                         </td>
                         <td>

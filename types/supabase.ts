@@ -67,7 +67,6 @@ export interface Database {
           name: string | null
           post: string | null
           updated_at: string | null
-          username: string | null
         }
         Insert: {
           admin?: boolean | null
@@ -76,7 +75,6 @@ export interface Database {
           name?: string | null
           post?: string | null
           updated_at?: string | null
-          username?: string | null
         }
         Update: {
           admin?: boolean | null
@@ -85,7 +83,6 @@ export interface Database {
           name?: string | null
           post?: string | null
           updated_at?: string | null
-          username?: string | null
         }
       }
     }
