@@ -1,4 +1,4 @@
-import { Button, Select, TextInput } from "@mantine/core";
+import { Button, Select, TextInput, Loader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 
@@ -20,9 +20,11 @@ export default function RegistrationForm() {
         "Theokot",
     ];
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const registerUser = async (event: any) => {
         event.preventDefault();
+        setLoading(true);
         const res = await fetch("/api/registerUser", {
             body: JSON.stringify({
                 name: event.target.name.value,
@@ -37,6 +39,7 @@ export default function RegistrationForm() {
             method: "POST",
         });
         const result = await res.json();
+        setLoading(false);
         if (result.error) {
             setError(result.error);
         } else {
@@ -57,7 +60,7 @@ export default function RegistrationForm() {
             <TextInput label="Rekeningnummer" required name="iban" />
             <TextInput label="Wachtwoord" required name="password" type="password" />
             { error ? <span className="flex justify-center text-red-600 font-bold">{error}</span> : <></>}
-            <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit">Registreer</Button>
+            <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit">{ loading ? <Loader/> :  "Registreer"}</Button>
         </form>
     );
 }

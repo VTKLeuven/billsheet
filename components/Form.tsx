@@ -1,4 +1,4 @@
-import { Alert, Button, FileInput, NumberInput, Select, TextInput } from "@mantine/core";
+import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -10,6 +10,7 @@ export default function Form() {
     const supabase = useSupabaseClient();
     const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const form: any = useForm({
         initialValues: {
@@ -59,6 +60,7 @@ export default function Form() {
             console.log("Form is not valid");
             return
         }
+        setLoading(true)
         const values = form.values
         const path = await uploadPhoto(values.photo)
 
@@ -88,6 +90,7 @@ export default function Form() {
                 image: path,
                 uid: user.data.user.id
             })
+        setLoading(false)
         if (!error) {
             setSuccessAlert(true)
             setErrorAlert("")
@@ -162,7 +165,7 @@ export default function Form() {
                         </Alert> : <></> 
                         }
 
-                    <Button color="vtk-yellow" onClick={sendBill}>Verzenden</Button>
+                    <Button color="vtk-yellow" onClick={sendBill}>{loading ? <Loader/> : "Verzenden"}</Button>
                 </div>
             </form>
         </div>
