@@ -30,6 +30,9 @@ export default function BillList({ billList }: IBillList) {
                         <td>
                             <b>Bedrag</b>
                         </td>
+                        <td>
+                            <b>Betaald</b>
+                        </td>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-vtk-yellow">
