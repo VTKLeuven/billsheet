@@ -1,14 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { degrees, PDFDocument } from 'pdf-lib'
 import { supabase } from '../../lib/supabaseClient';
+import fs from 'fs';
+import getConfig from 'next/config';
+import path from 'path';
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 
-    const urlTemplate = process.env.VERCEL_URL + "/blad.pdf"
-    const pdfArrayBuffer = await fetch(urlTemplate).then(res => res.arrayBuffer())
-    const doc = await PDFDocument.load(pdfArrayBuffer);
+    const { serverRuntimeConfig } = getConfig();
+    const filePath = path.join(serverRuntimeConfig.PROJECT_ROOT, "public", "blad.pdf")
+    const pdfReadBuffer = fs.readFileSync(filePath)
+    const doc = await PDFDocument.load(pdfReadBuffer);
     const page = doc.getPage(0);
 
     const { data: bills, error } = await supabase.from("bills")
