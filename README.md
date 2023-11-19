@@ -1,34 +1,24 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Billsheet
+An web application to make managing expenses easier.
+The current design is quite specific for the student organization [VTK](https://vtk.be).
+However, feel free to fork it or submit a pull request to make it more general!
 
-## Getting Started
+## Screenshots
 
-First, run the development server:
+<img src='https://github.com/hiasr/billsheet/assets/22374542/ea0f50b8-75a1-48c2-a36a-8d30b3e1bdbc' alt="Expense Form" width='50%'>
+<img src='https://github.com/hiasr/billsheet/assets/22374542/39f57d79-810a-4c02-8f78-f13d7cc1c567' alt="Admin Overview" width='50%'>
+<img src='https://github.com/hiasr/billsheet/assets/22374542/d2da3d48-8135-4aba-a9e3-ae9f6b8d72c5' alt="Login Form" width='50%'>
 
-```bash
-npm run dev
-# or
-yarn dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Purpose
+The purpose of this project is to manage the expenses for VTK. Because of the way our accountant works, we still need to submit them by PDF. However, this tool makes automates this process filling in the expense form based on the input and adding the picture of the bill.
+It includes a clear overview of all expenses and whether the payer has been reimbursed.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Usage
+You can sign up using any "@vtk.be" mailing address, to be able to log in you need to have verified this address. This is so no users from outside the organization can submit expenses. Once this is done you can fill in the form and your bill will get sent to the finance team!
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Development
+To be able to develop this project, you will need an active Supabase instance. A free-tier account is more than enough for development purposes, keep in mind that your project will get paused if there is no interaction with it.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Deployment
+This project relies on Supabase as a database but the Next.js app can be hosted on a service of your preference. [Vercel](https://vercel.com) is probably the easiest though.
