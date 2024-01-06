@@ -38,8 +38,8 @@ export default function Form() {
             desc: isNotEmpty("Dit veld is verplicht"),
             paymentMethod: isNotEmpty("Dit veld is verplicht"),
             amount: isNotEmpty("Dit veld is verplicht"),
-            iban: (value) => ( form.values.paymentMethod === "personal" && value.length < 1 ? "Dit veld is verplicht" : null ),
-            photo: (value) => ( value.name == "Selecteer bestand" ? "Dit veld is verplicht" : null ),
+            iban: (value) => (form.values.paymentMethod === "personal" && value.length < 1 ? "Dit veld is verplicht" : null),
+            photo: (value) => (value.name == "Selecteer bestand" ? "Dit veld is verplicht" : null),
         }
     });
 
@@ -89,7 +89,7 @@ export default function Form() {
                 activity: values.activity,
                 desc: values.desc,
                 date: formatDate(values.date),
-                amount: Math.round(values.amount*100),
+                amount: Math.round(values.amount * 100),
                 payment_method: values.paymentMethod,
                 iban: values.iban,
                 image: path,
@@ -122,7 +122,7 @@ export default function Form() {
             return fileName
         }
     }
-    
+
     function formatDate(timestamp: number) {
         const date = new Date(timestamp)
         return date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
@@ -141,7 +141,7 @@ export default function Form() {
                 <div className="flex flex-col space-y-4 justify-center content-center">
                     <TextInput label="Naam" withAsterisk {...form.getInputProps("name")} />
                     <Select label="Post" data={posts} withAsterisk {...form.getInputProps("post")} />
-                    <DatePickerInput label="Datum Uitgave" withAsterisk {...form.getInputProps("date")}/>
+                    <DatePickerInput label="Datum Uitgave" withAsterisk {...form.getInputProps("date")} />
                     <TextInput label="Activiteit" withAsterisk {...form.getInputProps("activity")} />
                     <TextInput label="Omschrijving" withAsterisk {...form.getInputProps("desc")} />
                     <NumberInput label="Bedrag" min={0} precision={2} placeholder="10.23" withAsterisk {...form.getInputProps("amount")} />
@@ -150,27 +150,27 @@ export default function Form() {
                         { value: "personal", label: "Persoonlijk" }]}
                         {...form.getInputProps("paymentMethod")}
                     />
-                    { form.values.paymentMethod === "personal" ?
-                        <TextInput label="IBAN" withAsterisk {...form.getInputProps("iban")}/>
-                        : <></> }
+                    {form.values.paymentMethod === "personal" ?
+                        <TextInput label="IBAN" withAsterisk {...form.getInputProps("iban")} />
+                        : <></>}
                     <FileInput
                         placeholder="Selecteer afbeelding"
                         label="Foto rekening"
                         withAsterisk
                         {...form.getInputProps("photo")}
                     />
-                    { succesAlert ? 
+                    {succesAlert ?
                         <Alert title="Succesvol!" color="green">
                             Rekening succesvol ingediend!
-                        </Alert> : <></> 
-                        }
-                    { errorAlert ? 
+                        </Alert> : <></>
+                    }
+                    {errorAlert ?
                         <Alert title="Error" color="red">
                             {errorAlert}
-                        </Alert> : <></> 
-                        }
+                        </Alert> : <></>
+                    }
 
-                    <Button color="vtk-yellow" onClick={sendBill}>{loading ? <Loader/> : "Verzenden"}</Button>
+                    <Button color="vtk-yellow" onClick={sendBill}>{loading ? <Loader /> : "Verzenden"}</Button>
                 </div>
             </form>
         </div>
