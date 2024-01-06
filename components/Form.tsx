@@ -1,27 +1,33 @@
 import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import { v4 } from "uuid";
 
 
 export default function Form() {
     const supabase = useSupabaseClient();
+    const user = useUser();
+
     const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
     const [loading, setLoading] = useState(false)
 
+    const name: string = user?.user_metadata.full_name;
+    const iban: string = user?.user_metadata.iban;
+    const post: string = user?.user_metadata.post;
+
     const form: any = useForm({
         initialValues: {
-            name: "",
-            post: "",
+            name: name,
+            post: post,
             date: new Date(),
             activity: "",
             desc: "",
             amount: "",
             paymentMethod: "vtk",
-            iban: "",
+            iban: iban,
             photo: new File([""], "Selecteer bestand")
         },
         validate: {
@@ -68,9 +74,8 @@ export default function Form() {
             return
         }
 
-        const user = await supabase.auth.getUser()
 
-        if (!user.data.user) {
+        if (user == null) {
             setErrorAlert("Je bent niet ingelogd")
             setSuccessAlert(false)
             return
@@ -88,7 +93,7 @@ export default function Form() {
                 payment_method: values.paymentMethod,
                 iban: values.iban,
                 image: path,
-                uid: user.data.user.id
+                uid: user.id
             })
         setLoading(false)
         if (!error) {
