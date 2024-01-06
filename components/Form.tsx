@@ -39,7 +39,12 @@ export default function Form() {
             paymentMethod: isNotEmpty("Dit veld is verplicht"),
             amount: isNotEmpty("Dit veld is verplicht"),
             iban: (value) => (form.values.paymentMethod === "personal" && value.length < 1 ? "Dit veld is verplicht" : null),
-            photo: (value) => (value === undefined ? "Dit veld is verplicht" : !isAllowedExtension(value.name) ? "Enkel .png, .jpg, .jpeg en .pdf bestanden zijn toegelaten" : null),
+            photo: (value: File | undefined) => (
+                value === undefined
+                    ? "Dit veld is verplicht"
+                    : !isAllowedExtension(value.name)
+                        ? "Enkel .png, .jpg, .jpeg en .pdf bestanden zijn toegelaten"
+                        : null),
         }
     });
 
