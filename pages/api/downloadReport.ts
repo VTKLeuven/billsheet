@@ -4,19 +4,16 @@ import { supabase } from '../../lib/supabaseClient';
 import fs from 'fs';
 import path from 'path';
 
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
-
     const filePath = path.resolve("./public", "blad.pdf")
     const pdfReadBuffer = fs.readFileSync(filePath)
     const doc = await PDFDocument.load(pdfReadBuffer);
     const page = doc.getPage(0);
 
     const { data: bills, error } = await supabase.from("bills")
-                    .select()
-                    .eq('id', Number(req.query.id))
-                    .limit(1)
+        .select()
+        .eq('id', Number(req.query.id))
+        .limit(1)
 
     if (error) {
         console.log(error)
@@ -37,7 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return
     }
 
-    page.drawText(bill.activity, { x: 355,
+    page.drawText(bill.activity, {
+        x: 355,
         y: 805,
         size: fontSize
     });
@@ -93,23 +91,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
     // Afmetingen:590x600 
-    const filename = bill.image
-    const imageBuffer = await photo.arrayBuffer()
+    const filename = bill.image;
+    const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() : "";
+    let imageBuffer: ArrayBuffer = await photo.arrayBuffer()
     var image = null;
-    if (filename.endsWith('jpg') || filename.endsWith("jpeg")) {
-        image = await doc.embedJpg(imageBuffer);
-    } else {
-        image = await doc.embedPng(imageBuffer);
+    switch (extension) {
+        case "jpg":
+        case "jpeg":
+            image = await doc.embedJpg(imageBuffer);
+            break;
+        case "png":
+            image = await doc.embedPng(imageBuffer);
+            break;
+        case "pdf":
+            const pdfBill = await PDFDocument.load(imageBuffer);
+            const pages = await doc.copyPages(pdfBill, pdfBill.getPageIndices());
+            pages.forEach(page => doc.addPage(page));
+        default:
+            console.log('Unknown file type.');
+            res.status(500).json({ error: "Unknown file type." })
+            return;
     }
 
-    const scaledDims = image.scaleToFit(580, 570);
-    page.drawImage(image, {
-        x: (590 - scaledDims.height) / 2,
-        y: 590,
-        width: scaledDims.width,
-        height: scaledDims.height,
-        rotate: degrees(-90)
-    })
+    if (image !== null) {
+        const scaledDims = image.scaleToFit(580, 570);
+        page.drawImage(image, {
+            x: (590 - scaledDims.height) / 2,
+            y: 590,
+            width: scaledDims.width,
+            height: scaledDims.height,
+            rotate: degrees(-90)
+        })
+    }
+
     const pdfBytes = await doc.save()
     res.setHeader('Content-Disposition', `attachment; filename="rekening-${bill.desc}.pdf"`);
     res.setHeader('Content-Type', 'application/pdf');
