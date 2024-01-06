@@ -6,6 +6,7 @@ import {
 } from "@supabase/auth-helpers-react";
 import { Profile } from "../types";
 import { useRouter } from "next/router";
+import { error } from "console";
 
 export default function ProfileForm({ session }: { session: Session }) {
     const supabase = useSupabaseClient();
@@ -34,31 +35,31 @@ export default function ProfileForm({ session }: { session: Session }) {
     ];
 
     useEffect(() => {
-        getProfile();
-    }, [session, getProfile]);
-
-    async function getProfile() {
-        try {
-            setLoading(true);
-            if (!user) throw new Error("No user authenticated");
-            let { data, error, status } = await supabase
-                .from("profiles")
-                .select()
-                .eq("id", user.id)
-                .single();
-            if (error && status !== 406) throw error;
-            if (data) {
-                setName(data.name);
-                setIban(data.iban);
-                setPost(data.post);
+        const getProfile = async () => {
+            try {
+                setLoading(true);
+                if (!user) throw new Error("No user authenticated");
+                let { data, error, status } = await supabase
+                    .from("profiles")
+                    .select()
+                    .eq("id", user.id)
+                    .single();
+                if (error && status !== 406) throw error;
+                if (data) {
+                    setName(data.name);
+                    setIban(data.iban);
+                    setPost(data.post);
+                }
+            } catch (error) {
+                alert("Error loading user data");
+                console.log(error);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            alert("Error loading user data");
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    }
+        };
+
+        getProfile().catch(console.error);
+    }, [session, supabase, user]);
 
     async function updateProfile({
         name,
@@ -113,6 +114,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     name="name"
                                     type="text"
                                     onChange={(e) => setName(e.target.value)}
+                                    value={name ?? ""}
                                     required
                                     className="border-b-2 border-slate-300"
                                 />
@@ -131,7 +133,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     required
                                     className="border-b-2 border-slate-300 background-white"
                                     onChange={(e) => setPost(e.target.value)}
-                                    value={post ? post : ""}
+                                    value={post ?? ""}
                                 >
                                     {posts.map((postOption: string) => (
                                         <option
@@ -156,6 +158,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     name="iban"
                                     type="text"
                                     onChange={(e) => setIban(e.target.value)}
+                                    value={iban ?? ""}
                                     className="border-b-2 border-slate-300"
                                 />
                             </td>
