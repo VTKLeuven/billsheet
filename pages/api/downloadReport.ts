@@ -107,8 +107,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const pdfBill = await PDFDocument.load(imageBuffer);
             const pages = await doc.copyPages(pdfBill, pdfBill.getPageIndices());
             pages.forEach(page => doc.addPage(page));
+            break;
         default:
-            console.log('Unknown file type.');
+            console.log('Unknown file type: ' + extension);
             res.status(500).json({ error: "Unknown file type." })
             return;
     }
