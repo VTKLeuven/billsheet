@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data: bills, error } = await supabase.from("bills")
                     .select()
-                    .eq('id', req.query.id)
+                    .eq('id', Number(req.query.id))
                     .limit(1)
 
     if (error) {
