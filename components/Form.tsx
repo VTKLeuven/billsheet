@@ -28,7 +28,7 @@ export default function Form() {
             amount: "",
             paymentMethod: "vtk",
             iban: iban,
-            photo: new File([""], "Selecteer bestand")
+            photo: undefined
         },
         validate: {
             name: isNotEmpty("Dit veld is verplicht"),
@@ -39,9 +39,14 @@ export default function Form() {
             paymentMethod: isNotEmpty("Dit veld is verplicht"),
             amount: isNotEmpty("Dit veld is verplicht"),
             iban: (value) => (form.values.paymentMethod === "personal" && value.length < 1 ? "Dit veld is verplicht" : null),
-            photo: (value) => (value.name == "Selecteer bestand" ? "Dit veld is verplicht" : null),
+            photo: (value) => (value === undefined ? "Dit veld is verplicht" : !isAllowedExtension(value.name) ? "Enkel .png, .jpg, .jpeg en .pdf bestanden zijn toegelaten": null),
         }
     });
+
+    function isAllowedExtension(name: string) {
+        const lowerName = name.toLowerCase();
+        return lowerName.endsWith("pdf") || lowerName.endsWith("jpg") || lowerName.endsWith("jpeg") || lowerName.endsWith("png");
+    }
 
     const posts = [
         "Activiteiten",
@@ -61,11 +66,12 @@ export default function Form() {
     ];
 
     async function sendBill() {
-        if (!form.validate()) {
-            console.log(form.errors)
-            console.log("Form is not valid");
-            return
+        const validated = form.validate();
+
+        if(validated && validated.hasErrors){
+            return;
         }
+
         setLoading(true)
         const values = form.values
         const path = await uploadPhoto(values.photo)
@@ -110,7 +116,6 @@ export default function Form() {
         const uuid = v4()
         const extension = file.name.split(".").at(-1)
         const fileName = uuid + "." + extension
-        console.log(fileName)
         const { data, error } = await
             supabase
                 .storage
