@@ -1,17 +1,15 @@
 import '../styles/globals.css'
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
-import { useState } from 'react'
 import { Open_Sans } from 'next/font/google'
 import { MantineProvider, createEmotionCache } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import Head from 'next/head'
 import NavBar from '../components/NavBar'
+import { supabase } from '../lib/supabaseClient'
 
-const open_sans = Open_Sans({subsets: ['latin']})
+const open_sans = Open_Sans({ subsets: ['latin'] })
 
 export default function App({ Component, pageProps }: any) {
-    const [supabase] = useState(() => createBrowserSupabaseClient())
     const customEmotionCache = createEmotionCache({
         key: 'mantine',
         prepend: false
@@ -48,7 +46,7 @@ export default function App({ Component, pageProps }: any) {
                         }
                     }}>
                     <main className={open_sans.className}>
-                        <NavBar/>
+                        <NavBar />
                         <Notifications />
                         <Component {...pageProps} />
                     </main>
