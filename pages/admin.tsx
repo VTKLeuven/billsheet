@@ -34,17 +34,6 @@ export default function Admin({ billList }: IAdminInput) {
 }
 
 export async function getServerSideProps(context: any) {
-    console.log("context:-------------------------------------------------------------------------------------------------------")
-    console.log(context.req)
-    // const isAdmin = (await getUserData(context.session.user.id))?.admin
-    // if(!isAdmin) {
-    //     return {
-    //         redirect: {
-    //             permanent: false,
-    //             destination: "/"
-    //         }
-    //     }
-    // }
     const { data: billList, error } = await supabase
         .from('bills')
         .select()
