@@ -20,7 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data, error } = await supabase.auth.signInWithOtp({
         email: req.body.email,
     })
-    console.log(data, error)
 
     if (userError) {
         res.status(500).json({ error: userError.message })
