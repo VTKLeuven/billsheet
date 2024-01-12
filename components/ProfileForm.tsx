@@ -55,7 +55,6 @@ export default function ProfileForm({ session }: { session: Session }) {
                     title: "Error",
                     message: "Error loading user data"
                 })
-                console.log(error);
             } finally {
                 setLoading(false);
             }
@@ -97,7 +96,6 @@ export default function ProfileForm({ session }: { session: Session }) {
                 title: "Error",
                 message: "Error while updating profile"
             })
-            console.log(error);
         } finally {
             setLoading(false);
         }

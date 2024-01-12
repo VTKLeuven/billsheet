@@ -16,7 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .limit(1)
 
     if (error) {
-        console.log(error)
         res.status(500).json({ error: error.message })
         return
     }
@@ -29,7 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .download(bill.image)
 
     if (photoError) {
-        console.log(photoError)
         res.status(500).json({ error: photoError.message })
         return
     }
@@ -109,7 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             pages.forEach(page => doc.addPage(page));
             break;
         default:
-            console.log('Unknown file type: ' + extension);
             res.status(500).json({ error: "Unknown file type." })
             return;
     }

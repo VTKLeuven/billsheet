@@ -20,7 +20,6 @@ export default function SignInForm() {
             email: email,
             password: password,
         })
-        console.log(data,error)
         if (data.user) {
             setError("")
             router.push("/")

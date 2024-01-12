@@ -143,7 +143,6 @@ export default function Form() {
                 .from('bill_images')
                 .upload(fileName, file)
         if (error) {
-            console.log(data, error)
         } else {
             return fileName
         }
