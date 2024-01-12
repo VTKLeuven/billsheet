@@ -47,7 +47,7 @@ export default function App({ Component, pageProps }: any) {
                     }}>
                     <main className={open_sans.className}>
                         <NavBar />
-                        <Notifications />
+                        <Notifications position="top-right" />
                         <Component {...pageProps} />
                     </main>
                 </MantineProvider>
