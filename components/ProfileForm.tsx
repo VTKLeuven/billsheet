@@ -4,9 +4,9 @@ import {
     useSupabaseClient,
     Session,
 } from "@supabase/auth-helpers-react";
+import { notifications } from "@mantine/notifications";
 import { Profile } from "../types";
 import { useRouter } from "next/router";
-import { error } from "console";
 
 export default function ProfileForm({ session }: { session: Session }) {
     const supabase = useSupabaseClient();
@@ -51,7 +51,10 @@ export default function ProfileForm({ session }: { session: Session }) {
                     setPost(data.post);
                 }
             } catch (error) {
-                alert("Error loading user data");
+                notifications.show({
+                    title: "Error",
+                    message: "Error loading user data"
+                })
                 console.log(error);
             } finally {
                 setLoading(false);
@@ -84,10 +87,16 @@ export default function ProfileForm({ session }: { session: Session }) {
 
             let { error } = await supabase.from("profiles").upsert(update_data);
             if (error) throw error;
-            alert("Profile updated!")
+            notifications.show({
+                title: "Succes",
+                message: "Profile updated!"
+            })
             router.push("/")
         } catch (error) {
-            alert("Error while updating profile");
+            notifications.show({
+                title: "Error",
+                message: "Error while updating profile"
+            })
             console.log(error);
         } finally {
             setLoading(false);
