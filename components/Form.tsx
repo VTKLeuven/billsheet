@@ -2,8 +2,10 @@ import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 } from "uuid";
+import getUserData from "../lib/getUser";
+import { Profile } from "../types";
 
 
 export default function Form() {
@@ -13,21 +15,19 @@ export default function Form() {
     const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
     const [loading, setLoading] = useState(false)
-
-    const name: string = user?.user_metadata.full_name;
-    const iban: string = user?.user_metadata.iban;
-    const post: string = user?.user_metadata.post;
+    const [pageLoading, setPageLoading] = useState(true)
+    const [userData, setUserData] = useState<Profile>()
 
     const form: any = useForm({
         initialValues: {
-            name: name,
-            post: post,
+            name: userData?.name,
+            post: userData?.post,
             date: new Date(),
             activity: "",
             desc: "",
             amount: "",
             paymentMethod: "vtk",
-            iban: iban,
+            iban: userData?.iban,
             photo: undefined
         },
         validate: {
@@ -47,6 +47,25 @@ export default function Form() {
                         : null),
         }
     });
+
+    useEffect(() => {
+        const getUser = async () => {
+            if (user) {
+                const userData = await getUserData(user.id)
+                setUserData(userData)
+                form.setValues({
+                    name: userData?.name ?? "test",
+                    post: userData?.post,
+                    iban: userData?.iban,
+                })
+                console.log("effect")
+                setPageLoading(false)
+            }
+        }
+        if (user) {
+            getUser()
+        }
+    }, [user]);
 
     function isAllowedExtension(name: string) {
         const lowerName = name.toLowerCase();
@@ -139,7 +158,7 @@ export default function Form() {
     }
 
 
-    return (
+    return pageLoading ? <p>Loading</p> :(
         <div className="flex justify-center align-center rounded-lg p-10 min-w-[25em]">
             <form
                 className="flex align-center flex-col min-w-[25em]"
