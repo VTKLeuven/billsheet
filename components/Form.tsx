@@ -15,7 +15,6 @@ export default function Form() {
     const [errorAlert, setErrorAlert] = useState("")
     const [succesAlert, setSuccessAlert] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [pageLoading, setPageLoading] = useState(true)
     const [userData, setUserData] = useState<Profile>()
 
     const form: any = useForm({
@@ -59,7 +58,6 @@ export default function Form() {
                     iban: userData?.iban,
                 })
                 console.log("effect")
-                setPageLoading(false)
             }
         }
         if (user) {
@@ -158,7 +156,7 @@ export default function Form() {
     }
 
 
-    return pageLoading ? <p>Loading</p> :(
+    return (
         <div className="flex justify-center align-center rounded-lg p-10 min-w-[25em]">
             <form
                 className="flex align-center flex-col min-w-[25em]"
