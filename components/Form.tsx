@@ -57,7 +57,6 @@ export default function Form() {
                     post: userData?.post ?? "",
                     iban: userData?.iban ?? "",
                 })
-                console.log("effect")
             }
         }
         if (user) {
