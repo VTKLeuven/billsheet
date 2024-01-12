@@ -19,14 +19,14 @@ export default function Form() {
 
     const form: any = useForm({
         initialValues: {
-            name: userData?.name,
+            name: userData?.name ?? "",
             post: userData?.post,
             date: new Date(),
             activity: "",
             desc: "",
             amount: "",
             paymentMethod: "vtk",
-            iban: userData?.iban,
+            iban: userData?.iban ?? "",
             photo: undefined
         },
         validate: {
@@ -53,9 +53,9 @@ export default function Form() {
                 const userData = await getUserData(user.id)
                 setUserData(userData)
                 form.setValues({
-                    name: userData?.name ?? "test",
-                    post: userData?.post,
-                    iban: userData?.iban,
+                    name: userData?.name ?? "",
+                    post: userData?.post ?? "",
+                    iban: userData?.iban ?? "",
                 })
                 console.log("effect")
             }
