@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import BillList from '../components/BillList'
 import getUserData from '../lib/getUser'
 import { supabase } from '../lib/supabaseClient'
-import { IBill, Profile } from '../types'
+import { IBill } from '../types'
 import { useUser } from '@supabase/auth-helpers-react'
 
 interface IAdminInput {
@@ -11,13 +11,13 @@ interface IAdminInput {
 
 export default function Admin({ billList }: IAdminInput) {
     const user = useUser();
-    const [userData, setUserData] = useState<Profile>();
+    const [admin, setAdmin] = useState(false);
 
     useEffect(() => {
         const getUser = async () => {
             if (user) {
                 const userData = await getUserData(user.id)
-                setUserData(userData)
+                setAdmin(userData?.admin ?? false)
             }
         }
         if (user) {
@@ -25,11 +25,7 @@ export default function Admin({ billList }: IAdminInput) {
         }
     }, [user]);
 
-    if (userData == undefined) {
-        return <></>
-    }
-
-    if (!userData?.admin) {
+    if(!admin) {
         return <p>Access Denied</p>
     }
     return (
