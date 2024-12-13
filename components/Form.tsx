@@ -77,13 +77,17 @@ export default function Form() {
         "Cursusdienst",
         "Development",
         "Fakbar",
-        "G5",
+        "Beheer",
+        "Secretaris",
+        "Vice-Praeses",
+        "Praeses",
         "Internationaal",
         "IT",
         "Logistiek",
         "Onderwijs",
         "Sport",
         "Theokot",
+        "Ploeg",
     ];
 
     async function sendBill() {

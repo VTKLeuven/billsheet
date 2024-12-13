@@ -11,13 +11,17 @@ export default function RegistrationForm() {
         "Cursusdienst",
         "Development",
         "Fakbar",
-        "G5",
+        "Beheer",
+        "Secretaris",
+        "Vice-Praeses",
+        "Praeses",
         "Internationaal",
         "IT",
         "Logistiek",
         "Onderwijs",
         "Sport",
         "Theokot",
+        "Ploeg",
     ];
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -59,8 +63,8 @@ export default function RegistrationForm() {
             <Select label="Post" required name="post" data={posts} />
             <TextInput label="Rekeningnummer" required name="iban" />
             <TextInput label="Wachtwoord" required name="password" type="password" />
-            { error ? <span className="flex justify-center text-red-600 font-bold">{error}</span> : <></>}
-            <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit">{ loading ? <Loader/> :  "Registreer"}</Button>
+            {error ? <span className="flex justify-center text-red-600 font-bold">{error}</span> : <></>}
+            <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit">{loading ? <Loader /> : "Registreer"}</Button>
         </form>
     );
 }

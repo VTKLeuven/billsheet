@@ -25,13 +25,17 @@ export default function ProfileForm({ session }: { session: Session }) {
         "Cursusdienst",
         "Development",
         "Fakbar",
-        "G5",
+        "Beheer",
+        "Secretaris",
+        "Vice-Praeses",
+        "Praeses",
         "Internationaal",
         "IT",
         "Logistiek",
         "Onderwijs",
         "Sport",
         "Theokot",
+        "Ploeg",
     ];
 
     useEffect(() => {
