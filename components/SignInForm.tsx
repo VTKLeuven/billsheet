@@ -24,7 +24,7 @@ export default function SignInForm() {
             setError("")
             router.push("/")
             return;
-        } 
+        }
         if (error) {
             setError(error.message)
         }
@@ -33,16 +33,16 @@ export default function SignInForm() {
 
     return (
         <form className="flex content-center justify-content flex-col space-y-4 min-w-[25em]" onSubmit={signIn}>
-            <TextInput 
-                label="Email" 
+            <TextInput
+                label="Email"
                 placeholder="voornaam.naam@vtk.be"
-                onChange={(e) => setEmail(e.target.value)}/>
+                onChange={(e) => setEmail(e.target.value)} />
             <PasswordInput
                 label="Wachtwoord"
-                onChange={(e) => setPassword(e.target.value)}/>
+                onChange={(e) => setPassword(e.target.value)} />
 
             <Button color="vtk-yellow.5" onClick={signIn}>Inloggen</Button>
-                
+
 
             {error ? <span className="flex justify-center text-red-600">{error}</span> : <></>}
             <Link href="/register">

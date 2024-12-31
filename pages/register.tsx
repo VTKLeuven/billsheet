@@ -2,6 +2,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RegistrationForm from "../components/RegistrationForm";
+import React from "react";
 
 export default function Home() {
     const session = useSession();

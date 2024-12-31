@@ -1,31 +1,16 @@
-import { useUser } from "@supabase/auth-helpers-react"
 import { useRouter } from "next/router"
-import { useEffect, useState } from "react";
-import getUserData from "../lib/getUser";
 import { supabase } from "../lib/supabaseClient";
 import { notifications } from "@mantine/notifications";
+import { useUser } from "../contexts/UserContext";
 
 export default function NavBar() {
     const router = useRouter();
-    const user = useUser();
-    const [admin, setAdmin] = useState(false);
+    const { user } = useUser();
     let links = new Map();
     links.set("Home", "/");
     links.set("Profile", "/account");
 
-    useEffect(() => {
-        const getUser = async () => {
-            if (user) {
-                const userData = await getUserData(user.id)
-                setAdmin(userData?.admin ?? false)
-            }
-        }
-        if (user) {
-            getUser()
-        }
-    }, [user]);
-
-    if (admin) {
+    if (user?.admin) {
         links.set("Admin", "/admin");
     } else {
         links.delete("Admin")
@@ -37,6 +22,7 @@ export default function NavBar() {
             title: "Logged out",
             message: "You have been logged out"
         })
+        router.push("/");
     }
 
     return (

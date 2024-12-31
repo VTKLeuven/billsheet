@@ -1,32 +1,31 @@
 import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
-import getUserData from "../lib/getUser";
-import { Profile } from "../types";
+import { useUser } from "../contexts/UserContext";
+import { posts } from "../utils/constants";
 
 
 export default function Form() {
     const supabase = useSupabaseClient();
-    const user = useUser();
+    const { user } = useUser();
 
     const [errorAlert, setErrorAlert] = useState("")
-    const [succesAlert, setSuccessAlert] = useState(false)
+    const [successAlert, setSuccessAlert] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [userData, setUserData] = useState<Profile>()
 
     const form: any = useForm({
         initialValues: {
-            name: userData?.name ?? "",
-            post: userData?.post,
+            name: user?.name ?? "",
+            post: user?.post,
             date: new Date(),
             activity: "",
             desc: "",
             amount: "",
             paymentMethod: "vtk",
-            iban: userData?.iban ?? "",
+            iban: user?.iban ?? "",
             photo: undefined
         },
         validate: {
@@ -48,19 +47,15 @@ export default function Form() {
     });
 
     useEffect(() => {
-        const getUser = async () => {
-            if (user) {
-                const userData = await getUserData(user.id)
-                setUserData(userData)
-                form.setValues({
-                    name: userData?.name ?? "",
-                    post: userData?.post ?? "",
-                    iban: userData?.iban ?? "",
-                })
-            }
+        const updateForm = () => {
+            form.setValues({
+                name: user?.name ?? "",
+                post: user?.post ?? "",
+                iban: user?.iban ?? "",
+            })
         }
         if (user) {
-            getUser()
+            updateForm()
         }
     }, [user]);
 
@@ -68,27 +63,6 @@ export default function Form() {
         const lowerName = name.toLowerCase();
         return lowerName.endsWith("pdf") || lowerName.endsWith("jpg") || lowerName.endsWith("jpeg") || lowerName.endsWith("png");
     }
-
-    const posts = [
-        "Activiteiten",
-        "Bedrijvenrelaties",
-        "Communicatie",
-        "Cultuur",
-        "Cursusdienst",
-        "Development",
-        "Fakbar",
-        "Beheer",
-        "Secretaris",
-        "Vice-Praeses",
-        "Praeses",
-        "Internationaal",
-        "IT",
-        "Logistiek",
-        "Onderwijs",
-        "Sport",
-        "Theokot",
-        "Ploeg",
-    ];
 
     async function sendBill() {
         const validated = form.validate();
@@ -188,7 +162,7 @@ export default function Form() {
                         withAsterisk
                         {...form.getInputProps("photo")}
                     />
-                    {succesAlert ?
+                    {successAlert ?
                         <Alert title="Succesvol!" color="green">
                             Rekening succesvol ingediend!
                         </Alert> : <></>

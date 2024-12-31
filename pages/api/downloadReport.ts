@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { degrees, PDFDocument } from 'pdf-lib'
+import { degrees, PDFDocument, type PDFImage } from 'pdf-lib'
 import { supabase } from '../../lib/supabaseClient';
 import fs from 'fs';
 import path from 'path';
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const filename = bill.image;
     const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() : "";
     let imageBuffer: ArrayBuffer = await photo.arrayBuffer()
-    var image = null;
+    let image: PDFImage | null = null;
     switch (extension) {
         case "jpg":
         case "jpeg":

@@ -1,28 +1,9 @@
 import { Button, Select, TextInput, Loader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
+import { posts } from "../utils/constants";
 
 export default function RegistrationForm() {
-    const posts = [
-        "Activiteiten",
-        "Bedrijvenrelaties",
-        "Communicatie",
-        "Cultuur",
-        "Cursusdienst",
-        "Development",
-        "Fakbar",
-        "Beheer",
-        "Secretaris",
-        "Vice-Praeses",
-        "Praeses",
-        "Internationaal",
-        "IT",
-        "Logistiek",
-        "Onderwijs",
-        "Sport",
-        "Theokot",
-        "Ploeg",
-    ];
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 

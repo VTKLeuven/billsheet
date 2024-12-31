@@ -1,4 +1,3 @@
-import { User, useUser } from "@supabase/auth-helpers-react";
 import { supabase } from "./supabaseClient";
 
 export default async function getUserData(userid: string) {

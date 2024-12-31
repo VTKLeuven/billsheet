@@ -1,80 +1,25 @@
-import { useState, useEffect } from "react";
-import {
-    useUser,
-    useSupabaseClient,
-    Session,
-} from "@supabase/auth-helpers-react";
+import { useState } from "react";
+import { useSupabaseClient, Session } from "@supabase/auth-helpers-react";
 import { notifications } from "@mantine/notifications";
 import { Profile } from "../types";
 import { useRouter } from "next/router";
+import { useUser } from "../contexts/UserContext";
+import { posts } from "../utils/constants";
 
 export default function ProfileForm({ session }: { session: Session }) {
     const supabase = useSupabaseClient();
-    const user = useUser();
+    let { user } = useUser();
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [name, setName] = useState<Profile["name"]>(null);
-    const [iban, setIban] = useState<Profile["iban"]>(null);
-    const [post, setPost] = useState<Profile["post"]>(null);
-
-    const posts = [
-        "Activiteiten",
-        "Bedrijvenrelaties",
-        "Communicatie",
-        "Cultuur",
-        "Cursusdienst",
-        "Development",
-        "Fakbar",
-        "Beheer",
-        "Secretaris",
-        "Vice-Praeses",
-        "Praeses",
-        "Internationaal",
-        "IT",
-        "Logistiek",
-        "Onderwijs",
-        "Sport",
-        "Theokot",
-        "Ploeg",
-    ];
-
-    useEffect(() => {
-        const getProfile = async () => {
-            try {
-                setLoading(true);
-                if (!user) throw new Error("No user authenticated");
-                let { data, error, status } = await supabase
-                    .from("profiles")
-                    .select()
-                    .eq("id", user.id)
-                    .single();
-                if (error && status !== 406) throw error;
-                if (data) {
-                    setName(data.name);
-                    setIban(data.iban);
-                    setPost(data.post);
-                }
-            } catch (error) {
-                notifications.show({
-                    title: "Error",
-                    message: "Error loading user data"
-                })
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        getProfile().catch(console.error);
-    }, [session, supabase, user]);
+    const [loading, setLoading] = useState(false);
 
     async function updateProfile({
         name,
         iban,
         post,
     }: {
-        name: Profile["name"];
-        iban: Profile["iban"];
-        post: Profile["post"];
+        name?: Profile["name"];
+        iban?: Profile["iban"];
+        post?: Profile["post"];
     }) {
         try {
             setLoading(true);
@@ -91,7 +36,7 @@ export default function ProfileForm({ session }: { session: Session }) {
             let { error } = await supabase.from("profiles").upsert(update_data);
             if (error) throw error;
             notifications.show({
-                title: "Succes",
+                title: "Success",
                 message: "Profile updated!"
             })
             router.push("/")
@@ -124,8 +69,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     id="name"
                                     name="name"
                                     type="text"
-                                    onChange={(e) => setName(e.target.value)}
-                                    value={name ?? ""}
+                                    onChange={(e) => user!.name = e.target.value}
+                                    value={user?.name ?? ""}
                                     required
                                     className="border-b-2 border-slate-300"
                                 />
@@ -143,8 +88,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     name="post"
                                     required
                                     className="border-b-2 border-slate-300 background-white"
-                                    onChange={(e) => setPost(e.target.value)}
-                                    value={post ?? ""}
+                                    onChange={(e) => user!.post = e.target.value}
+                                    value={user!.post ?? ""}
                                 >
                                     {posts.map((postOption: string) => (
                                         <option
@@ -168,8 +113,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     id="iban"
                                     name="iban"
                                     type="text"
-                                    onChange={(e) => setIban(e.target.value)}
-                                    value={iban ?? ""}
+                                    onChange={(e) => user!.iban = e.target.value}
+                                    value={user!.iban ?? ""}
                                     className="border-b-2 border-slate-300"
                                 />
                             </td>
@@ -180,7 +125,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                 <button
                     value="Opslaan"
                     className="border mt-9"
-                    onClick={() => updateProfile({ name, iban, post })}
+                    onClick={() => updateProfile({ name: user?.name, iban: user?.iban, post: user?.post })}
                     disabled={loading}
                 >
                     Opslaan

@@ -1,31 +1,17 @@
-import { useEffect, useState } from 'react'
 import BillList from '../components/BillList'
-import getUserData from '../lib/getUser'
 import { supabase } from '../lib/supabaseClient'
 import { IBill } from '../types'
-import { useUser } from '@supabase/auth-helpers-react'
+import { useUser } from '../contexts/UserContext'
+import React from 'react'
 
 interface IAdminInput {
     billList: [IBill]
 }
 
 export default function Admin({ billList }: IAdminInput) {
-    const user = useUser();
-    const [admin, setAdmin] = useState(false);
+    const { user } = useUser();
 
-    useEffect(() => {
-        const getUser = async () => {
-            if (user) {
-                const userData = await getUserData(user.id)
-                setAdmin(userData?.admin ?? false)
-            }
-        }
-        if (user) {
-            getUser()
-        }
-    }, [user]);
-
-    if(!admin) {
+    if (!user?.admin) {
         return <p>Access Denied</p>
     }
     return (
