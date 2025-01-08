@@ -4,6 +4,29 @@ import { supabase } from '../../lib/supabaseClient';
 import fs from 'fs';
 import path from 'path';
 
+function getAcademicYearTag(date: Date, format: 'short' | 'long' = 'short'): string {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // getMonth() returns 0-based month
+    const day = date.getDate();
+
+    let startYear, endYear;
+    if (month > 7 || (month === 7 && day >= 15)) {
+        // After July 15th
+        startYear = year;
+        endYear = year + 1;
+    } else {
+        // Before July 15th
+        startYear = year - 1;
+        endYear = year;
+    }
+
+    if (format === 'long') {
+        return `${startYear}-${endYear}`;
+    } else {
+        return `${startYear % 100}-${endYear % 100}`;
+    }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const filePath = path.resolve("./public", "blad.pdf")
     const pdfReadBuffer = fs.readFileSync(filePath)
@@ -31,6 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(500).json({ error: photoError.message })
         return
     }
+
+    const billDate = new Date(bill.date ?? Date.now());
+    page.drawText(getAcademicYearTag(billDate, "long"), {
+        x: 40,
+        y: 715,
+        size: fontSize
+    });
 
     page.drawText(bill.activity, {
         x: 355,
@@ -123,7 +153,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const pdfBytes = await doc.save()
-    res.setHeader('Content-Disposition', `attachment; filename="rekening-${bill.desc}.pdf"`);
+    const downloadName = `${getAcademicYearTag(billDate)}_${bill.post}_${bill.activity}_${bill.desc}_${bill.amount / 100}.pdf`
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
     res.setHeader('Content-Type', 'application/pdf');
     const pdfBuffer = Buffer.from(pdfBytes);
     res.send(pdfBuffer);
