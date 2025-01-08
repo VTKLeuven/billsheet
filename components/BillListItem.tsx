@@ -38,14 +38,15 @@ export default function BillListItem({ bill }: IBillListItem) {
                 {bill.date}
             </td>
             <td>
-                € { bill.amount ? <>{(bill.amount / 100).toFixed(2)}</>: "0.00"} 
+                € {bill.amount ? <>{(bill.amount / 100).toFixed(2)}</> : "0.00"}
             </td>
             <td>
-                <Checkbox checked={paid} onChange={handlePaidChange}/>
+                <Checkbox checked={paid} onChange={handlePaidChange} />
             </td>
             <td>
-                <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" rel="noreferrer" download>
-                    <AiOutlineDownload/>
+                <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" rel="noreferrer" download
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <AiOutlineDownload />
                 </a>
             </td>
         </tr>
