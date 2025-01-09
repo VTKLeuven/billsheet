@@ -147,7 +147,7 @@ export default function Form() {
                     <DatePickerInput label="Datum Uitgave" withAsterisk {...form.getInputProps("date")} />
                     <TextInput label="Activiteit" withAsterisk {...form.getInputProps("activity")} />
                     <TextInput label="Omschrijving" withAsterisk {...form.getInputProps("desc")} />
-                    <NumberInput label="Bedrag" min={0} precision={2} decimalSeparator="," placeholder="10.23" withAsterisk {...form.getInputProps("amount")} />
+                    <NumberInput label="Bedrag" inputMode="decimal" min={0} precision={2} decimalSeparator="," placeholder="10.23" withAsterisk {...form.getInputProps("amount")} />
                     <Select label="Betaalmethode" withAsterisk defaultValue="vtk"
                         data={[{ value: "vtk", label: "Kaart VTK" },
                         { value: "personal", label: "Persoonlijk" }]}
