@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { supabase } from '../lib/supabaseClient';
 import { IBill } from '../types';
-import { Button, TextInput, Textarea, Select, NumberInput } from '@mantine/core';
+import { Button, TextInput, Select, NumberInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { posts } from '../utils/constants';
 import { DatePickerInput } from '@mantine/dates';
@@ -12,6 +12,7 @@ export default function EditBill({ bill }: { bill: IBill }) {
     const router = useRouter();
     const { user } = useUser();
     const [loading, setLoading] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<string | null>(bill.payment_method);
 
     if (!user?.admin) {
         return <p>Access Denied</p>
@@ -61,8 +62,8 @@ export default function EditBill({ bill }: { bill: IBill }) {
     }
 
     return (
-        <div className="flex justify-center align-center border-2 border-vtk-yellow rounded-lg p-10">
-            <form className="flex align-center flex-col min-w-[25em]" onSubmit={updateBill}>
+        <div className="flex justify-center align-center border-2 border-vtk-yellow rounded-lg p-4 sm:p-10">
+            <form className="flex align-center flex-col w-full max-w-md space-y-1" onSubmit={updateBill}>
                 <h1 className="text-3xl font-bold border-b-4 border-vtk-yellow m-6">Edit Bill</h1>
                 <TextInput label="Name" required name="name" defaultValue={bill.name} />
                 <Select label="Post" data={posts} name="post" required defaultValue={bill.post} />
@@ -79,8 +80,11 @@ export default function EditBill({ bill }: { bill: IBill }) {
                         { value: 'personal', label: 'Personal' },
                     ]}
                     defaultValue={bill.payment_method}
+                    onChange={(value) => setPaymentMethod(value)}
                 />
-                <TextInput label="IBAN" required name="iban" defaultValue={bill.iban} />
+                {paymentMethod === 'personal' && (
+                    <TextInput label="IBAN" required name="iban" defaultValue={bill.iban} className="p-2" />
+                )}
                 <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit" loading={loading}>
                     Update Bill
                 </Button>
