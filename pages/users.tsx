@@ -4,7 +4,6 @@ import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { Profile } from "../types";
 import { Button, Table, Group, Modal } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { showNotification } from '@mantine/notifications';
 
 interface UsersProps {
@@ -16,8 +15,9 @@ export default function Users({ initialUsers }: UsersProps) {
     const router = useRouter();
     const [users, setUsers] = useState<Profile[]>(initialUsers);
     const [loading, setLoading] = useState(false);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
+    const [adminToggleModalOpen, setAdminToggleModalOpen] = useState(false);
+    const [userToToggle, setUserToToggle] = useState<Profile | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         if (!user?.admin) {
@@ -29,7 +29,7 @@ export default function Users({ initialUsers }: UsersProps) {
         setLoading(true);
         const { data, error } = await supabase.from("profiles").select("*");
         if (error) {
-            notifications.show({
+            showNotification({
                 title: "Error",
                 message: "Failed to fetch users",
             });
@@ -42,12 +42,12 @@ export default function Users({ initialUsers }: UsersProps) {
     const updateUser = async (id: string, updates: Partial<Profile>) => {
         const { error } = await supabase.from("profiles").update(updates).eq("id", id);
         if (error) {
-            notifications.show({
+            showNotification({
                 title: "Error",
                 message: "Failed to update user",
             });
         } else {
-            notifications.show({
+            showNotification({
                 title: "Success",
                 message: "User updated successfully",
             });
@@ -55,44 +55,18 @@ export default function Users({ initialUsers }: UsersProps) {
         }
     };
 
-    const deleteUser = async (id: string) => {
-        const { error } = await supabase.from("profiles").delete().eq("id", id);
-        if (error) {
-            notifications.show({
-                title: "Error",
-                message: "Failed to delete user",
-            });
-        } else {
-            notifications.show({
-                title: "Success",
-                message: "User deleted successfully",
-            });
-            setUsers(users.filter(user => user.id !== id));
-        }
+    const handleAdminToggle = (user: Profile, isAdmin: boolean) => {
+        setUserToToggle(user);
+        setIsAdmin(isAdmin);
+        setAdminToggleModalOpen(true);
     };
 
-    const handleDeleteClick = (user: Profile) => {
-        if (user.admin) {
-            showNotification({
-                title: 'Error',
-                message: 'Admin users cannot be deleted.',
-                color: 'red',
-            });
-            return;
+    const confirmAdminToggle = async () => {
+        if (userToToggle) {
+            await updateUser(userToToggle.id, { admin: isAdmin });
+            setAdminToggleModalOpen(false);
+            fetchUsers();
         }
-        setUserToDelete(user);
-        setDeleteModalOpen(true);
-    };
-
-    const confirmDelete = () => {
-        if (userToDelete) {
-            deleteUser(userToDelete.id);
-        }
-        setDeleteModalOpen(false);
-    };
-
-    const handleAdminToggle = (id: string, isAdmin: boolean) => {
-        updateUser(id, { admin: isAdmin });
     };
 
     return (
@@ -120,14 +94,11 @@ export default function Users({ initialUsers }: UsersProps) {
                                 <input
                                     type="checkbox"
                                     checked={user.admin ?? false}
-                                    onChange={(e) => handleAdminToggle(user.id, e.target.checked)}
+                                    onChange={(e) => handleAdminToggle(user, e.target.checked)}
                                 />
                             </td>
                             <td>
-                                <Group spacing="xs">
-                                    <Button onClick={() => router.push(`/editUser?id=${user.id}`)}>Edit</Button>
-                                    <Button color="red" onClick={() => handleDeleteClick(user)}>Delete</Button>
-                                </Group>
+                                <Button onClick={() => router.push(`/editUser?id=${user.id}`)}>Edit</Button>
                             </td>
                         </tr>
                     ))}
@@ -136,20 +107,20 @@ export default function Users({ initialUsers }: UsersProps) {
             {loading && <p>Loading...</p>}
 
             <Modal
-                opened={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                title={<strong>Confirm Deletion</strong>}
+                opened={adminToggleModalOpen}
+                onClose={() => setAdminToggleModalOpen(false)}
+                title={<strong>Edit Admin</strong>}
             >
-                {userToDelete && (
+                {userToToggle && (
                     <div>
-                        <p>Are you sure you want to delete the following user?</p>
-                        <p><strong>Name:</strong> {userToDelete.name}</p>
-                        <p><strong>Post:</strong> {userToDelete.post}</p>
+                        <p>Are you sure you want to {isAdmin ? 'grant' : 'revoke'} admin privileges for the following user?</p>
+                        <p><strong>Name:</strong> {userToToggle.name}</p>
+                        <p><strong>Post:</strong> {userToToggle.post}</p>
                     </div>
                 )}
                 <Group position="apart" mt="md">
-                    <Button onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-                    <Button color="red" onClick={confirmDelete}>Delete</Button>
+                    <Button onClick={() => setAdminToggleModalOpen(false)}>Cancel</Button>
+                    <Button color={isAdmin ? 'green' : 'red'} onClick={confirmAdminToggle}>{isAdmin ? 'Grant' : 'Revoke'} Admin</Button>
                 </Group>
             </Modal>
         </div>
