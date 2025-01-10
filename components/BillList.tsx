@@ -15,23 +15,26 @@ export default function BillList({ billList }: IBillList) {
             <Table className="min-w-full ">
                 <thead className="border-b-4 border-vtk-yellow">
                     <tr>
-                        <td>
+                        <td className="pr-4">
                             <b>Omschrijving</b>
                         </td>
-                        <td>
+                        <td className="pr-4">
                             <b>Event</b>
                         </td>
-                        <td>
+                        <td className="pr-4">
                             <b>Naam</b>
                         </td>
-                        <td>
+                        <td className="pr-4">
                             <b>Datum</b>
                         </td>
-                        <td>
+                        <td className="pr-4">
                             <b>Bedrag</b>
                         </td>
-                        <td>
+                        <td className="pr-4">
                             <b>Betaald</b>
+                        </td>
+                        <td>
+                            <b>Actions</b>
                         </td>
                     </tr>
                 </thead>

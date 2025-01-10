@@ -2,6 +2,7 @@ import { useRouter } from "next/router"
 import { supabase } from "../lib/supabaseClient";
 import { notifications } from "@mantine/notifications";
 import { useUser } from "../contexts/UserContext";
+import Link from "next/link";
 
 export default function NavBar() {
     const router = useRouter();
@@ -19,28 +20,29 @@ export default function NavBar() {
     }
 
     async function logOut() {
-        const { error } = await supabase.auth.signOut()
+        const { error } = await supabase.auth.signOut();
         notifications.show({
             title: "Logged out",
-            message: "You have been logged out"
-        })
+            message: "You have been logged out",
+        });
         router.push("/");
     }
 
     return (
-        <div className="b-4 bg-slate-100 border-vtk-yellow min-height-5%">
+        <nav className="b-4 bg-slate-100 border-vtk-yellow min-height-5% flex">
             {Array.from(links).map(([k, v]) =>
-                <button key={k} onClick={() => router.push(v)}>
+                <Link key={k} href={v}>
                     <div className="p-4 text-xl font-bold b-x-2 border-slate-600">
                         {k}
                     </div>
-                </button>
+                </Link>
             )}
-            {user ? <button className="float-right" onClick={() => logOut()}>
-                <div className="p-4 text-xl font-bold b-x-2 border-slate-600">
-                    Logout
-                </div>
-            </button> : <></>}
-        </div>
+            {user ?
+                <button className="ml-auto" onClick={() => logOut()}>
+                    <div className="p-4 text-xl font-bold b-x-2 border-slate-600">
+                        Logout
+                    </div>
+                </button> : <></>}
+        </nav>
     )
 }
