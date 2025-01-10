@@ -11,9 +11,11 @@ export default function NavBar() {
     links.set("Profile", "/account");
 
     if (user?.admin) {
-        links.set("Admin", "/admin");
+        links.set("Bills", "/admin");
+        links.set("Users", "/users");
     } else {
-        links.delete("Admin")
+        links.delete("Bills")
+        links.delete("Users")
     }
 
     async function logOut() {

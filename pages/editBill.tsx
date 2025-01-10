@@ -63,7 +63,7 @@ export default function EditBill({ bill }: { bill: IBill }) {
 
     return (
         <div className="flex justify-center align-center border-2 border-vtk-yellow rounded-lg p-4 sm:p-10">
-            <form className="flex align-center flex-col w-full max-w-md space-y-1" onSubmit={updateBill}>
+            <form className="flex align-center flex-col w-full max-w-md space-y-2" onSubmit={updateBill}>
                 <h1 className="text-3xl font-bold border-b-4 border-vtk-yellow m-6">Edit Bill</h1>
                 <TextInput label="Name" required name="name" defaultValue={bill.name} />
                 <Select label="Post" data={posts} name="post" required defaultValue={bill.post} />
@@ -83,9 +83,9 @@ export default function EditBill({ bill }: { bill: IBill }) {
                     onChange={(value) => setPaymentMethod(value)}
                 />
                 {paymentMethod === 'personal' && (
-                    <TextInput label="IBAN" required name="iban" defaultValue={bill.iban} className="p-2" />
+                    <TextInput label="IBAN" required name="iban" defaultValue={bill.iban} />
                 )}
-                <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] m-5" type="submit" loading={loading}>
+                <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em]" type="submit" loading={loading}>
                     Update Bill
                 </Button>
             </form>
