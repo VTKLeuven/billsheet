@@ -27,6 +27,22 @@ function getAcademicYearTag(date: Date, format: 'short' | 'long' = 'short'): str
     }
 }
 
+/**
+ * Replaces characters in the input string that are not allowed in a Content-Disposition header
+ * with close matching characters or removes them if no close match is found.
+ * 
+ * @param str - The input string to be sanitized.
+ * @returns The sanitized string with only allowed characters.
+ */
+const replaceBadCharacters = (str: string) => {
+    const charMap: { [key: string]: string } = {
+        'ä': 'a', 'ö': 'o', 'ü': 'u', 'ß': 'ss',
+        'Ä': 'A', 'Ö': 'O', 'Ü': 'U',
+        // Add more mappings as needed
+    };
+    return str.replace(/[^\w\s.-]/g, (char) => charMap[char] || '');
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const filePath = path.resolve("./public", "blad.pdf")
     const pdfReadBuffer = fs.readFileSync(filePath)
@@ -153,7 +169,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const pdfBytes = await doc.save()
-    const downloadName = `${getAcademicYearTag(billDate)}_${bill.post}_${bill.activity}_${bill.desc}_${bill.amount / 100}.pdf`
+    const downloadName = replaceBadCharacters(`${getAcademicYearTag(billDate)}_${bill.post}_${bill.activity}_${bill.desc}_${bill.amount / 100}.pdf`);
+
     res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
     res.setHeader('Content-Type', 'application/pdf');
     const pdfBuffer = Buffer.from(pdfBytes);
