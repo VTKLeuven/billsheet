@@ -8,6 +8,7 @@ import NavBar from '../components/NavBar'
 import { supabase } from '../lib/supabaseClient'
 import { UserProvider } from '../contexts/UserContext'
 import React from 'react'
+import { Analytics } from '@vercel/analytics/next';
 
 const open_sans = Open_Sans({ subsets: ['latin'] })
 
@@ -56,6 +57,7 @@ export default function App({ Component, pageProps }: any) {
                     </MantineProvider>
                 </UserProvider>
             </SessionContextProvider>
+            <Analytics />
         </>
     )
 }
