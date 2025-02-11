@@ -40,14 +40,14 @@ export default function BillListItem({ bill }: IBillListItem) {
             }
         });
 
-        console.log(response);
-
         if (response.ok) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : `${bill.desc}.pdf`;
             a.href = url;
-            a.download = `${bill.desc}.pdf`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
