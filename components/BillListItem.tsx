@@ -23,6 +23,39 @@ export default function BillListItem({ bill }: IBillListItem) {
             }),
         });
     }
+
+    async function handleDownload() {
+        const supabaseProjectName = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0].split('//')[1];
+        const authToken = localStorage.getItem(`sb-${supabaseProjectName}-auth-token`);
+        const token = authToken ? JSON.parse(authToken)["access_token"] : null;
+        if (!token) {
+            alert('Unauthorized');
+            return;
+        }
+
+        const response = await fetch(`/api/downloadReport?id=${bill.id}`, {
+            method: 'GET',
+            headers: {
+                'x-supabase-token': token
+            }
+        });
+
+        console.log(response);
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${bill.desc}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Failed to download report');
+        }
+    }
+
     return (
         <tr>
             <td>
@@ -50,10 +83,10 @@ export default function BillListItem({ bill }: IBillListItem) {
                 </a>
             </td>
             <td>
-                <a href={`/api/downloadReport?id=${bill.id}`} target="_blank" rel="noreferrer" download
+                <button onClick={handleDownload}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <AiOutlineDownload />
-                </a>
+                </button>
             </td>
         </tr>
     );

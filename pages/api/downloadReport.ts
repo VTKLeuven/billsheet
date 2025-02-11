@@ -3,6 +3,8 @@ import { degrees, PDFDocument, type PDFImage } from 'pdf-lib'
 import { supabase } from '../../lib/supabaseClient';
 import fs from 'fs';
 import path from 'path';
+import jwt from 'jsonwebtoken';
+import getUserData from '../../lib/getUser';
 
 function getAcademicYearTag(date: Date, format: 'short' | 'long' = 'short'): string {
     const year = date.getFullYear();
@@ -44,6 +46,31 @@ const replaceBadCharacters = (str: string) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    // Extract the access token from the custom header
+    const token = req.headers['x-supabase-token'] as string;
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        // Decode the token to get the user ID
+        const decoded = jwt.decode(token) as any;
+        const userId = decoded.sub;
+
+        // Get the user data
+        const user = await getUserData(userId);
+
+        // Check if the user is an admin
+        if (!user || !user.admin) {
+            res.status(403).json({ error: 'Access denied' });
+            return;
+        }
+    } catch (error) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
     const filePath = path.resolve("./public", "blad.pdf")
     const pdfReadBuffer = fs.readFileSync(filePath)
     const doc = await PDFDocument.load(pdfReadBuffer);
