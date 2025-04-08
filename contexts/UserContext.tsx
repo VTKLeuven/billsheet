@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useUser as useSupabaseUser, User } from "@supabase/auth-helpers-react";
+import { useUser as useSupabaseUser } from "../contexts/SessionContext";
 import getUserData from "../lib/getUser";
 import type { Profile } from "../types";
 

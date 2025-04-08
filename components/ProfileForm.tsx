@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useSupabaseClient, Session } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "../contexts/SessionContext";
 import { notifications } from "@mantine/notifications";
 import { Profile } from "../types";
 import { useRouter } from "next/router";
 import { useUser } from "../contexts/UserContext";
 import { posts } from "../utils/constants";
+import { Session } from "@supabase/supabase-js";
 
 export default function ProfileForm({ session }: { session: Session }) {
     const supabase = useSupabaseClient();

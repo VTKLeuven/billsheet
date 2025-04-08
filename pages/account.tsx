@@ -1,4 +1,4 @@
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession } from "../contexts/SessionContext";
 import AuthUI from "../components/Auth";
 import ProfileForm from "../components/ProfileForm";
 import React from "react";

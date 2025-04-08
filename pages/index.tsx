@@ -1,6 +1,6 @@
 import {
     useSession,
-} from "@supabase/auth-helpers-react";
+} from "../contexts/SessionContext";
 import AuthUI from "../components/Auth";
 import Form from "../components/Form";
 import React from "react";

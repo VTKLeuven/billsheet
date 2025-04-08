@@ -1,12 +1,11 @@
 import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "../contexts/SessionContext";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
 import { useUser } from "../contexts/UserContext";
 import { posts } from "../utils/constants";
-
 
 export default function Form() {
     const supabase = useSupabaseClient();
@@ -79,7 +78,6 @@ export default function Form() {
             return
         }
 
-
         if (user == null) {
             setErrorAlert("Je bent niet ingelogd")
             setSuccessAlert(false)
@@ -130,7 +128,6 @@ export default function Form() {
         const date = new Date(timestamp)
         return date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
     }
-
 
     return (
         <div className="flex justify-center align-center rounded-lg p-10 min-w-[25em]">

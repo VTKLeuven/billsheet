@@ -1,5 +1,5 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Button, createStyles, TextInput, PasswordInput } from '@mantine/core'
+import { useSupabaseClient } from "../contexts/SessionContext";
+import { Button, TextInput, PasswordInput } from '@mantine/core'
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -42,7 +42,6 @@ export default function SignInForm() {
                 onChange={(e) => setPassword(e.target.value)} />
 
             <Button color="vtk-yellow.5" onClick={signIn}>Inloggen</Button>
-
 
             {error ? <span className="flex justify-center text-red-600">{error}</span> : <></>}
             <Link href="/register">

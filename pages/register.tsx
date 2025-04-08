@@ -1,16 +1,18 @@
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession } from "../contexts/SessionContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RegistrationForm from "../components/RegistrationForm";
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function Home() {
     const session = useSession();
     const router = useRouter()
 
-    if (session) {
-        router.push("/");
-    }
+    useEffect(() => {
+        if (session) {
+            router.push("/");
+        }
+    }, [session, router]);
 
     return (
         <div className="flex min-w-full min-h-full object-fill justify-center align-center m-10">
