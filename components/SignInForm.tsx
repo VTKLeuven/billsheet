@@ -41,9 +41,14 @@ export default function SignInForm() {
             <Button type="submit" color="vtk-yellow.5">Inloggen</Button>
 
             {error ? <span className="flex justify-center text-red-600">{error}</span> : <></>}
-            <Link href="/register">
-                <span className="flex justify-center underline text-slate-500">Nog geen account?</span>
-            </Link>
+            <div className="flex justify-between">
+                <Link href="/reset-password">
+                    <span className="underline text-slate-500">Wachtwoord vergeten?</span>
+                </Link>
+                <Link href="/register">
+                    <span className="underline text-slate-500">Nog geen account?</span>
+                </Link>
+            </div>
         </form>
     );
 }
