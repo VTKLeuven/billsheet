@@ -75,7 +75,7 @@ export default function ResetPasswordForm() {
                 </span>
             )}
 
-            <Link href="/signin">
+            <Link href="/">
                 <span className="flex justify-center underline text-slate-500">
                     Terug naar inloggen
                 </span>
