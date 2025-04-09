@@ -12,7 +12,7 @@ export default function SignInForm() {
     const supabase = useSupabaseClient()
     const router = useRouter()
 
-    const signIn = async (event: any) => {
+    const signIn = async (event: React.FormEvent) => {
         event.preventDefault()
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
@@ -38,7 +38,7 @@ export default function SignInForm() {
                 label="Wachtwoord"
                 onChange={(e) => setPassword(e.target.value)} />
 
-            <Button color="vtk-yellow.5" onClick={signIn}>Inloggen</Button>
+            <Button type="submit" color="vtk-yellow.5">Inloggen</Button>
 
             {error ? <span className="flex justify-center text-red-600">{error}</span> : <></>}
             <Link href="/register">
