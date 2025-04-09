@@ -1,4 +1,4 @@
-import { useSession } from "../contexts/SessionContext";
+import { useSession } from "../contexts/SupabaseContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RegistrationForm from "../components/RegistrationForm";

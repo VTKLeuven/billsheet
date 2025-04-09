@@ -1,21 +1,28 @@
+import { useUser, useSupabaseClient } from '../contexts/SupabaseContext';
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import { Profile } from "../types";
+import type { Profile } from '../types';
 import { Button, TextInput, Select } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { posts } from "../utils/constants";
+import { createAdminClient } from '../lib/supabase';
 
 interface EditUserProps {
     user: Profile;
 }
 
 export default function EditUser({ user }: EditUserProps) {
+    const supabase = useSupabaseClient();
+    const profile = useUser();
     const router = useRouter();
     const [name, setName] = useState(user.name);
     const [post, setPost] = useState(user.post);
     const [iban, setIban] = useState(user.iban);
     const [loading, setLoading] = useState(false);
+
+    if (!profile?.admin) {
+        return <p>Access Denied</p>;
+    }
 
     const updateUser = async (event: any) => {
         event.preventDefault();
@@ -82,21 +89,30 @@ export default function EditUser({ user }: EditUserProps) {
 
 export async function getServerSideProps(context: any) {
     const { id } = context.query;
-    const { data: user, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", id)
-        .single();
 
-    if (error) {
+    try {
+        const supabase = createAdminClient()
+
+        const { data: user, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error) {
+            console.error("Error fetching user:", error)
+            return {
+                notFound: true,
+            };
+        }
+
         return {
-            notFound: true,
+            props: {
+                user,
+            },
         };
+    } catch (error) {
+        console.error("Edit user page error:", error)
+        return { notFound: true };
     }
-
-    return {
-        props: {
-            user,
-        },
-    };
 }

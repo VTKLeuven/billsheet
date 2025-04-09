@@ -1,15 +1,14 @@
 import { Alert, Button, FileInput, NumberInput, Select, TextInput, Loader } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { useSupabaseClient } from "../contexts/SessionContext";
+import { useSupabaseClient, useUser } from "../contexts/SupabaseContext";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
-import { useUser } from "../contexts/UserContext";
 import { posts } from "../utils/constants";
 
 export default function Form() {
     const supabase = useSupabaseClient();
-    const { user } = useUser();
+    const user = useUser();
 
     const [errorAlert, setErrorAlert] = useState("")
     const [successAlert, setSuccessAlert] = useState(false)
@@ -18,7 +17,7 @@ export default function Form() {
     const form: any = useForm({
         initialValues: {
             name: user?.name ?? "",
-            post: user?.post,
+            post: user?.post ?? "",
             date: new Date(),
             activity: "",
             desc: "",
@@ -119,6 +118,8 @@ export default function Form() {
                 .from('bill_images')
                 .upload(fileName, file)
         if (error) {
+            console.error("Error uploading file:", error)
+            return null
         } else {
             return fileName
         }

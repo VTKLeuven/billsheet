@@ -1,16 +1,17 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useUser } from '../contexts/UserContext';
-import { supabase } from '../lib/supabaseClient';
+import { useUser, useSupabaseClient } from '../contexts/SupabaseContext';
 import { IBill } from '../types';
 import { Button, TextInput, Select, NumberInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { posts } from '../utils/constants';
 import { DatePickerInput } from '@mantine/dates';
+import { createAdminClient } from '../lib/supabase';
 
 export default function EditBill({ bill }: { bill: IBill }) {
+    const supabase = useSupabaseClient();
+    const user = useUser();
     const router = useRouter();
-    const { user } = useUser();
     const [loading, setLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<string | null>(bill.payment_method);
 
@@ -95,22 +96,32 @@ export default function EditBill({ bill }: { bill: IBill }) {
 
 export async function getServerSideProps(context: any) {
     const { id } = context.query;
-    if (id) {
-        const { data, error } = await supabase
-            .from('bills')
-            .select()
-            .eq('id', id)
-            .single();
 
-        if (error) {
-            notifications.show({
-                title: 'Error',
-                message: 'Failed to fetch bill data',
-            });
+    try {
+        const supabase = createAdminClient()
+
+        if (id) {
+            const { data, error } = await supabase
+                .from('bills')
+                .select()
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching bill:", error)
+                return {
+                    notFound: true,
+                };
+            }
+
+            return {
+                props: { bill: data },
+            };
         }
 
-        return {
-            props: { bill: data },
-        };
+        return { notFound: true };
+    } catch (error) {
+        console.error("Edit bill page error:", error)
+        return { notFound: true };
     }
 }

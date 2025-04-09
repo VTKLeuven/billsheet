@@ -1,6 +1,4 @@
-import {
-    useSession,
-} from "../contexts/SessionContext";
+import { useSession } from "../contexts/SupabaseContext";
 import AuthUI from "../components/Auth";
 import Form from "../components/Form";
 import React from "react";

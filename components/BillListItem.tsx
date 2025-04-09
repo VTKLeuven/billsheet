@@ -2,6 +2,7 @@ import { Checkbox } from "@mantine/core";
 import { IBill } from "../types";
 import { AiFillEdit, AiOutlineDownload } from "react-icons/ai";
 import { useState } from "react";
+import Link from "next/link";
 
 interface IBillListItem {
     bill: IBill;
@@ -83,10 +84,10 @@ export default function BillListItem({ bill }: IBillListItem) {
                 <Checkbox checked={paid} onChange={handlePaidChange} />
             </td>
             <td>
-                <a href={`/editBill?id=${bill.id}`}
+                <Link href={`/editBill?id=${bill.id}`}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <AiFillEdit />
-                </a>
+                </Link>
             </td>
             <td>
                 <button

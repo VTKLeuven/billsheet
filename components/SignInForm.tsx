@@ -1,4 +1,4 @@
-import { useSupabaseClient } from "../contexts/SessionContext";
+import { useSupabaseClient } from "../contexts/SupabaseContext";
 import { Button, TextInput, PasswordInput } from '@mantine/core'
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -9,13 +9,11 @@ export default function SignInForm() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
-    const [loading, setLoading] = useState(false)
     const supabase = useSupabaseClient()
     const router = useRouter()
 
     const signIn = async (event: any) => {
         event.preventDefault()
-        setLoading(true)
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
             password: password,
@@ -28,7 +26,6 @@ export default function SignInForm() {
         if (error) {
             setError(error.message)
         }
-        setLoading(false)
     }
 
     return (

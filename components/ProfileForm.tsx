@@ -1,54 +1,59 @@
 import { useState } from "react";
-import { useSupabaseClient } from "../contexts/SessionContext";
+import { useSupabase } from "../contexts/SupabaseContext";
 import { notifications } from "@mantine/notifications";
-import { Profile } from "../types";
 import { useRouter } from "next/router";
-import { useUser } from "../contexts/UserContext";
 import { posts } from "../utils/constants";
-import { Session } from "@supabase/supabase-js";
 
-export default function ProfileForm({ session }: { session: Session }) {
-    const supabase = useSupabaseClient();
-    let { user } = useUser();
+export default function ProfileForm() {
+    const { supabaseClient, user, refreshProfile } = useSupabase();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        post: user?.post || '',
+        iban: user?.iban || '',
+    });
 
-    async function updateProfile({
-        name,
-        iban,
-        post,
-    }: {
-        name?: Profile["name"];
-        iban?: Profile["iban"];
-        post?: Profile["post"];
-    }) {
+    // Handle input changes
+    const handleChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    async function updateProfile() {
         try {
             setLoading(true);
             if (!user) throw new Error("No user authenticated");
 
             const update_data = {
                 id: user.id,
-                name,
-                post,
-                iban,
+                name: formData.name,
+                post: formData.post,
+                iban: formData.iban,
                 updated_at: new Date().toISOString(),
             };
 
-            let { error } = await supabase.from("profiles").upsert(update_data);
+            const { error } = await supabaseClient.from("profiles").upsert(update_data);
             if (error) throw error;
+
+            await refreshProfile(); // Refresh the profile data in context
+
             notifications.show({
                 title: "Success",
                 message: "Profile updated!"
-            })
-            router.push("/")
+            });
+            router.push("/");
         } catch (error) {
             notifications.show({
                 title: "Error",
                 message: "Error while updating profile"
-            })
+            });
         } finally {
             setLoading(false);
         }
+    }
+
+    if (!user) {
+        return <div>Loading profile...</div>;
     }
 
     return (
@@ -70,8 +75,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     id="name"
                                     name="name"
                                     type="text"
-                                    onChange={(e) => user!.name = e.target.value}
-                                    value={user?.name ?? ""}
+                                    onChange={(e) => handleChange('name', e.target.value)}
+                                    value={formData.name}
                                     required
                                     className="border-b-2 border-slate-300"
                                 />
@@ -89,8 +94,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     name="post"
                                     required
                                     className="border-b-2 border-slate-300 background-white"
-                                    onChange={(e) => user!.post = e.target.value}
-                                    value={user!.post ?? ""}
+                                    onChange={(e) => handleChange('post', e.target.value)}
+                                    value={formData.post}
                                 >
                                     {posts.map((postOption: string) => (
                                         <option
@@ -114,8 +119,8 @@ export default function ProfileForm({ session }: { session: Session }) {
                                     id="iban"
                                     name="iban"
                                     type="text"
-                                    onChange={(e) => user!.iban = e.target.value}
-                                    value={user!.iban ?? ""}
+                                    onChange={(e) => handleChange('iban', e.target.value)}
+                                    value={formData.iban}
                                     className="border-b-2 border-slate-300"
                                 />
                             </td>
@@ -126,7 +131,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                 <button
                     value="Opslaan"
                     className="border mt-9"
-                    onClick={() => updateProfile({ name: user?.name, iban: user?.iban, post: user?.post })}
+                    onClick={updateProfile}
                     disabled={loading}
                 >
                     Opslaan

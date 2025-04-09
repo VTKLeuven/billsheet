@@ -1,44 +1,46 @@
-import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import { type ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
 import { Database } from '../types/supabase'
+
+// Environment variable validation for browser client (public)
+const getBrowserEnvVars = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl) {
+        throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+    }
+
+    if (!supabaseAnonKey) {
+        throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
+    }
+
+    return { supabaseUrl, supabaseAnonKey }
+}
+
+// Environment variable validation for admin client
+const getAdminEnvVars = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl) {
+        throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+    }
+
+    if (!supabaseServiceRole) {
+        throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+    }
+
+    return { supabaseUrl, supabaseServiceRole }
+}
 
 // For client-side usage
 export const createBrowserClient = () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Missing Supabase environment variables')
-    }
-
-    return createClient<Database>(supabaseUrl, supabaseKey)
+    const { supabaseUrl, supabaseAnonKey } = getBrowserEnvVars()
+    return createClient<Database>(supabaseUrl, supabaseAnonKey)
 }
 
-// For server-side usage with cookie handling
-export const createServerSupabaseClient = (cookieStore: ReadonlyRequestCookies) => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Missing Supabase environment variables')
-    }
-
-    return createServerClient<Database>(
-        supabaseUrl,
-        supabaseKey,
-        {
-            cookies: {
-                get: (name) => cookieStore.get(name)?.value,
-                set: (name, value, options) => {
-                    // This would be used in Route Handlers or Server Actions
-                    // We don't need to implement since we're not modifying cookies here
-                },
-                remove: (name, options) => {
-                    // This would be used in Route Handlers or Server Actions
-                    // We don't need to implement since we're not removing cookies here
-                }
-            }
-        }
-    )
+// For admin operations in API routes and server-side functions
+export const createAdminClient = () => {
+    const { supabaseUrl, supabaseServiceRole } = getAdminEnvVars()
+    return createClient<Database>(supabaseUrl, supabaseServiceRole)
 }

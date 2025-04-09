@@ -1,12 +1,13 @@
-import { useRouter } from "next/router"
-import { supabase } from "../lib/supabaseClient";
+import { useRouter } from "next/router";
+import { useUser, useSupabaseClient, useAuthLoading } from "../contexts/SupabaseContext";
 import { notifications } from "@mantine/notifications";
-import { useUser } from "../contexts/UserContext";
 import Link from "next/link";
 
 export default function NavBar() {
     const router = useRouter();
-    const { user } = useUser();
+    const user = useUser();
+    const supabase = useSupabaseClient();
+    
     let links = new Map();
     links.set("Home", "/");
     links.set("Profile", "/account");
@@ -15,8 +16,8 @@ export default function NavBar() {
         links.set("Bills", "/admin");
         links.set("Users", "/users");
     } else {
-        links.delete("Bills")
-        links.delete("Users")
+        links.delete("Bills");
+        links.delete("Users");
     }
 
     async function logOut() {
@@ -44,5 +45,5 @@ export default function NavBar() {
                     </div>
                 </button> : <></>}
         </nav>
-    )
+    );
 }

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "../lib/supabaseClient";
-import { useUser } from "../contexts/UserContext";
+import { useUser } from '../contexts/SupabaseContext';
 import { Profile } from "../types";
 import { Button, Table, Group, Modal } from "@mantine/core";
 import { showNotification } from '@mantine/notifications';
+import { createAdminClient } from '../lib/supabase';
 
 interface UsersProps {
     initialUsers: Profile[];
 }
 
 export default function Users({ initialUsers }: UsersProps) {
-    const { user } = useUser();
+    const user = useUser();
     const router = useRouter();
     const [users, setUsers] = useState<Profile[]>(initialUsers);
     const [loading, setLoading] = useState(false);
@@ -20,13 +20,14 @@ export default function Users({ initialUsers }: UsersProps) {
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        if (!user?.admin) {
+        if (!loading && user && !user.admin) {
             router.push("/");
         }
-    }, [router, user]);
+    }, [router, user, loading]);
 
     const fetchUsers = async () => {
         setLoading(true);
+        const supabase = createAdminClient();
         const { data, error } = await supabase.from("profiles").select("*");
         if (error) {
             showNotification({
@@ -40,6 +41,7 @@ export default function Users({ initialUsers }: UsersProps) {
     };
 
     const updateUser = async (id: string, updates: Partial<Profile>) => {
+        const supabase = createAdminClient();
         const { error } = await supabase.from("profiles").update(updates).eq("id", id);
         if (error) {
             showNotification({
@@ -128,23 +130,35 @@ export default function Users({ initialUsers }: UsersProps) {
 }
 
 export async function getServerSideProps() {
-    const { data: users, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("admin", { ascending: false })
-        .order("name", { ascending: true });
+    try {
+        const supabase = createAdminClient();
 
-    if (error) {
+        const { data: users, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .order("admin", { ascending: false })
+            .order("name", { ascending: true });
+
+        if (error) {
+            console.error("Error fetching users:", error);
+            return {
+                props: {
+                    initialUsers: [],
+                },
+            };
+        }
+
+        return {
+            props: {
+                initialUsers: users,
+            },
+        };
+    } catch (error) {
+        console.error("Users page error:", error);
         return {
             props: {
                 initialUsers: [],
             },
         };
     }
-
-    return {
-        props: {
-            initialUsers: users,
-        },
-    };
 }
