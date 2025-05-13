@@ -72,6 +72,9 @@ export default function BillListItem({ bill }: IBillListItem) {
                 {bill.activity}
             </td>
             <td>
+                {bill.post}
+            </td>
+            <td>
                 {bill.name}
             </td>
             <td>

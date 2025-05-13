@@ -42,6 +42,9 @@ export default function BillList({ billList }: IBillList) {
                             <b>Event</b>
                         </td>
                         <td className="pr-4">
+                            <b>Post</b>
+                        </td>
+                        <td className="pr-4">
                             <b>Naam</b>
                         </td>
                         <td className="pr-4">
