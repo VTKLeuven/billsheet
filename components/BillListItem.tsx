@@ -3,6 +3,7 @@ import { IBill } from "../types";
 import { AiFillEdit, AiOutlineDownload } from "react-icons/ai";
 import { useState } from "react";
 import Link from "next/link";
+import { notifications } from "@mantine/notifications";
 
 interface IBillListItem {
     bill: IBill;
@@ -14,34 +15,41 @@ export default function BillListItem({ bill }: IBillListItem) {
 
     async function handlePaidChange(e: any) {
         setPaid(e.target.checked);
-        fetch("/api/setPaid", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                id: bill.id,
-                paid: e.target.checked,
-            }),
-        });
+
+        try {
+            const response = await fetch("/api/setPaid", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: bill.id,
+                    paid: e.target.checked,
+                }),
+            });
+
+            if (!response.ok) {
+                setPaid(!e.target.checked); // Revert UI if request failed
+                notifications.show({
+                    title: 'Error',
+                    message: 'Failed to update payment status',
+                });
+            }
+        } catch (error) {
+            console.error("Error updating payment status:", error);
+            setPaid(!e.target.checked); // Revert UI on error
+            notifications.show({
+                title: 'Error',
+                message: 'Failed to update payment status',
+            });
+        }
     }
 
     async function handleDownload() {
         setIsDownloading(true);
         try {
-            const supabaseProjectName = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0].split('//')[1];
-            const authToken = localStorage.getItem(`sb-${supabaseProjectName}-auth-token`);
-            const token = authToken ? JSON.parse(authToken)["access_token"] : null;
-            if (!token) {
-                alert('Unauthorized');
-                return;
-            }
-
             const response = await fetch(`/api/downloadReport?id=${bill.id}`, {
-                method: 'GET',
-                headers: {
-                    'x-supabase-token': token
-                }
+                method: 'GET'
             });
 
             if (response.ok) {
@@ -56,7 +64,10 @@ export default function BillListItem({ bill }: IBillListItem) {
                 a.click();
                 a.remove();
             } else {
-                alert('Failed to download report');
+                notifications.show({
+                    title: 'Error',
+                    message: 'Failed to download report',
+                });
             }
         } finally {
             setIsDownloading(false);

@@ -1,13 +1,18 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createAdminClient } from '../../lib/supabase'
+import { createAdminClient } from '../../lib/supabase';
+import { requireAdmin } from '../../lib/authMiddleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Check if user is admin
+    const { authorized } = await requireAdmin(req, res);
+    if (!authorized) return;
+
     try {
-        const supabase = createAdminClient()
+        const supabase = createAdminClient();
 
         const {
             id,

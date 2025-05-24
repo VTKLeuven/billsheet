@@ -5,6 +5,7 @@ import { useSupabaseClient, useSession } from '../contexts/SupabaseContext';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { AiOutlineDownload } from "react-icons/ai";
+import { notifications } from '@mantine/notifications';
 
 export default function MyBills() {
     const session = useSession();
@@ -49,19 +50,8 @@ export default function MyBills() {
     async function handleDownload(billId: number) {
         setIsDownloading(billId);
         try {
-            const supabaseProjectName = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0].split('//')[1];
-            const authToken = localStorage.getItem(`sb-${supabaseProjectName}-auth-token`);
-            const token = authToken ? JSON.parse(authToken)["access_token"] : null;
-            if (!token) {
-                alert('Unauthorized');
-                return;
-            }
-
             const response = await fetch(`/api/downloadReport?id=${billId}`, {
-                method: 'GET',
-                headers: {
-                    'x-supabase-token': token
-                }
+                method: 'GET'
             });
 
             if (response.ok) {
@@ -76,8 +66,19 @@ export default function MyBills() {
                 a.click();
                 a.remove();
             } else {
-                alert('Failed to download report');
+                const errorText = await response.text();
+                console.error("Download failed:", errorText);
+                notifications.show({
+                    title: 'Error',
+                    message: 'Failed to download the report. Please try again later.',
+                });
             }
+        } catch (error) {
+            console.error("Download error:", error);
+            notifications.show({
+                title: 'Error',
+                message: 'Failed to download the report. Please try again later.',
+            });
         } finally {
             setIsDownloading(null);
         }

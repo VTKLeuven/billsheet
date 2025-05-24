@@ -63,7 +63,7 @@ export default function EditBill({ bill }: { bill: IBill }) {
                 message: 'Bill updated successfully',
             });
 
-            router.push(`/admin?t=${Date.now()}`);
+            router.push('/admin');
         } catch (error) {
             setLoading(false);
             console.error("Error updating bill:", error);

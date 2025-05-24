@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { SupabaseClient, Session } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 import type { Profile } from '../types';
+import Cookies from 'js-cookie';
 
 type SupabaseContextType = {
     supabaseClient: SupabaseClient<Database>;
@@ -77,10 +78,21 @@ export function SupabaseProvider({
             setIsLoading(true);
 
             if (session?.user?.id) {
+                // Set the access token as an HTTP-only cookie when session changes
+                if (session.access_token) {
+                    Cookies.set('supabase-auth-token', session.access_token, { 
+                        expires: 7, // 7 days expiry
+                        sameSite: 'strict',
+                        path: '/'
+                    });
+                }
+                
                 const userData = await fetchUserProfile(session.user.id);
                 setUser(userData);
             } else {
                 setUser(null);
+                // Remove the cookie when logged out
+                Cookies.remove('supabase-auth-token');
             }
 
             setIsLoading(false);

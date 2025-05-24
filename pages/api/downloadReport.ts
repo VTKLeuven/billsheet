@@ -1,31 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { degrees, PDFDocument, type PDFImage } from 'pdf-lib'
-import { createAdminClient } from '../../lib/supabase'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { degrees, PDFDocument, type PDFImage } from 'pdf-lib';
+import { createAdminClient } from '../../lib/supabase';
 import fs from 'fs';
 import path from 'path';
-import jwt from 'jsonwebtoken';
-import type { Profile } from '../../types';
-
-async function getUserData(userId: string): Promise<Profile | null> {
-  try {
-    const supabase = createAdminClient()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-      
-    if (error) {
-      console.error('Error fetching user:', error)
-      return null
-    }
-    
-    return data
-  } catch (error) {
-    console.error('Unexpected error in getUserData:', error)
-    return null
-  }
-}
+import { requireAuth } from '../../lib/authMiddleware';
 
 function getAcademicYearTag(date: Date, format: 'short' | 'long' = 'short'): string {
     const year = date.getFullYear();
@@ -68,50 +46,53 @@ const replaceBadCharacters = (str: string) => {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
+        // Check if user is authenticated (not necessarily admin)
+        const { user, authorized } = await requireAuth(req, res);
+        if (!authorized) return;
+
         // Create admin client for database operations
-        const supabase = createAdminClient()
+        const supabase = createAdminClient();
 
-        // Extract the access token from the custom header
-        const token = req.headers['x-supabase-token'] as string;
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
+        // Get the bill ID from the request
+        const billId = Number(req.query.id);
+        if (!billId) {
+            return res.status(400).json({ error: "Bill ID is required" });
         }
-
-        // Decode the token to get the user ID
-        const decoded = jwt.decode(token) as any;
-        const userId = decoded.sub;
-
-        // Get the user data
-        const user = await getUserData(userId);
-
-        // Check if the user is an admin
-        if (!user || !user.admin) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
-
-        const filePath = path.resolve("./public", "blad.pdf")
-        const pdfReadBuffer = fs.readFileSync(filePath)
-        const doc = await PDFDocument.load(pdfReadBuffer);
-        const page = doc.getPage(0);
 
         const { data: bills, error } = await supabase.from("bills")
             .select()
-            .eq('id', Number(req.query.id))
-            .limit(1)
+            .eq('id', billId)
+            .limit(1);
 
         if (error) {
-            return res.status(500).json({ error: error.message })
+            return res.status(500).json({ error: error.message });
         }
 
-        const fontSize = 13
-        const bill = bills[0]
+        if (!bills || bills.length === 0) {
+            return res.status(404).json({ error: "Bill not found" });
+        }
+
+        const bill = bills[0];
+
+        // Only allow users to download their own bills unless they're an admin
+        if (bill.uid !== user?.id && !user?.admin) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+
+        // Now proceed with the PDF generation
+        const filePath = path.resolve("./public", "blad.pdf");
+        const pdfReadBuffer = fs.readFileSync(filePath);
+        const doc = await PDFDocument.load(pdfReadBuffer);
+        const page = doc.getPage(0);
+
+        const fontSize = 13;
 
         const { data: photo, error: photoError } = await supabase.storage
             .from("bill_images")
-            .download(bill.image)
+            .download(bill.image);
 
         if (photoError) {
-            return res.status(500).json({ error: photoError.message })
+            return res.status(500).json({ error: photoError.message });
         }
 
         const billDate = new Date(bill.date ?? Date.now());
@@ -218,8 +199,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const pdfBuffer = Buffer.from(pdfBytes);
         res.send(pdfBuffer);
     } catch (error) {
-        console.error("Download report error:", error)
-        return res.status(500).json({ error: "Unexpected server error" })
+        console.error("Download report error:", error);
+        return res.status(500).json({ error: "Unexpected server error" });
     }
 }
 
