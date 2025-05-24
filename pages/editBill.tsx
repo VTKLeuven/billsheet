@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useUser, useSupabaseClient } from '../contexts/SupabaseContext';
+import { useUser } from '../contexts/SupabaseContext';
 import { IBill } from '../types';
 import { Button, TextInput, Select, NumberInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -9,7 +9,6 @@ import { DatePickerInput } from '@mantine/dates';
 import { createAdminClient } from '../lib/supabase';
 
 export default function EditBill({ bill }: { bill: IBill }) {
-    const supabase = useSupabaseClient();
     const user = useUser();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -28,33 +27,51 @@ export default function EditBill({ bill }: { bill: IBill }) {
             return date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
         }
 
-        const { error } = await supabase
-            .from('bills')
-            .update({
+        try {
+            // Prepare data to send to API
+            const billData = {
+                id: bill.id,
                 name: event.target.name.value,
                 post: event.target.post.value,
                 date: formatDate(event.target.date.value),
                 activity: event.target.activity.value,
                 desc: event.target.desc.value,
-                amount: Math.round(event.target.amount.value.replace(',', '.') * 100),
+                amount: Math.round(parseFloat(String(event.target.amount.value).replace(',', '.')) * 100),
                 payment_method: event.target.paymentMethod.value,
                 iban: event.target.iban.value,
-            })
-            .eq('id', bill.id);
+            };
 
-        setLoading(false);
-
-        if (error) {
-            notifications.show({
-                title: 'Error',
-                message: 'Failed to update bill',
+            // Call the API endpoint
+            const response = await fetch('/api/updateBill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(billData),
             });
-        } else {
+
+            const result = await response.json();
+
+            setLoading(false);
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to update bill');
+            }
+
             notifications.show({
                 title: 'Success',
                 message: 'Bill updated successfully',
             });
-            router.push('/admin');
+
+            router.push(`/admin?t=${Date.now()}`);
+        } catch (error) {
+            setLoading(false);
+            console.error("Error updating bill:", error);
+
+            notifications.show({
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to update bill',
+            });
         }
     };
 
