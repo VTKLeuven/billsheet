@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSupabase } from '../contexts/SupabaseContext';
 import { Profile } from "../types";
-import { Button, Table, Group, Modal, Text, Loader, Tooltip } from "@mantine/core";
+import { Button, Table, Group, Modal, Text, Loader, Tooltip, Paper, Box, MediaQuery, Badge, Card, Pagination } from "@mantine/core";
 import { notifications } from '@mantine/notifications';
+import { FiEdit, FiTrash2, FiUser, FiCheck, FiX } from "react-icons/fi";
 
 export default function Users() {
     const { user: currentUser, isLoading } = useSupabase();
@@ -17,6 +18,10 @@ export default function Users() {
     const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
     // Improved redirect logic with delay to prevent premature redirects during page refresh
     useEffect(() => {
@@ -168,6 +173,12 @@ export default function Users() {
         }
     };
 
+    // Get current users for pagination
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+
     // Show loading while checking authentication
     if (isLoading) {
         return (
@@ -187,95 +198,254 @@ export default function Users() {
     }
 
     return (
-        <div className="w-3/4 m-16">
-            <h1 className="text-3xl font-bold border-b-8 border-vtk-yellow mb-10">
-                Users
-            </h1>
-            {loading ? (
-                <div className="flex justify-center items-center min-h-[50vh]">
-                    <Loader size="xl" color="vtk-yellow" />
-                </div>
-            ) : (
-                <Table className="min-w-full">
-                    <thead className="border-b-4 border-vtk-yellow">
-                        <tr>
-                            <td><b>Name</b></td>
-                            <td><b>Post</b></td>
-                            <td><b>IBAN</b></td>
-                            <td><b>Admin</b></td>
-                            <td><b>Actions</b></td>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-vtk-yellow">
-                        {users.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.name}</td>
-                                <td>{user.post}</td>
-                                <td>{user.iban}</td>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={user.admin ?? false}
-                                        onChange={(e) => handleAdminToggle(user, e.target.checked)}
-                                    />
-                                </td>
-                                <td>
-                                    <Group spacing="xs">
-                                        <Button
-                                            onClick={() => router.push(`/editUser?id=${user.id}`)}
-                                            size="sm"
-                                        >
-                                            Edit
-                                        </Button>
-                                        {user.id !== currentUser?.id ? (
-                                            <Button
-                                                color="red"
-                                                onClick={() => handleDeleteUser(user)}
-                                                size="sm"
-                                            >
-                                                Delete
-                                            </Button>
-                                        ) : (
-                                            <Tooltip
-                                                label="For security reasons, you cannot delete your own account"
-                                                position="top"
-                                                withArrow
-                                            >
-                                                <div> {/* Wrapper div to make tooltip work with disabled button */}
+        <>
+            <div className="flex flex-col w-full px-4 py-6 md:py-10 md:px-6">
+                <div className="w-full max-w-6xl mx-auto">
+                    <div className="flex items-center justify-between mb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold border-b-4 border-vtk-yellow pb-2">
+                            Users Management
+                        </h1>
+                    </div>
+
+                    {loading ? (
+                        <div className="flex justify-center items-center min-h-[30vh]">
+                            <Loader size="xl" color="vtk-yellow" />
+                        </div>
+                    ) : (
+                        <>
+                            {/* Mobile Card View */}
+                            <MediaQuery largerThan="md" styles={{ display: 'none' }}>
+                                <div className="space-y-4">
+                                    {currentUsers.map((user) => (
+                                        <Card key={user.id} shadow="sm" padding="lg" radius="md" withBorder className="border-l-4 border-vtk-yellow">
+                                            <div className="flex flex-col space-y-2">
+                                                <div className="flex justify-between items-start">
+                                                    <Text weight={700} size="lg">{user.name}</Text>
+                                                    {user.admin ? (
+                                                        <Badge color="blue" variant="filled">Admin</Badge>
+                                                    ) : null}
+                                                </div>
+
+                                                <div className="py-2">
+                                                    <Text size="sm" color="dimmed">Post:</Text>
+                                                    <Text>{user.post || "-"}</Text>
+
+                                                    <Text size="sm" color="dimmed" mt={8}>IBAN:</Text>
+                                                    <Text>{user.iban || "-"}</Text>
+                                                </div>
+
+                                                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                                                    <Text size="sm" weight={500}>Admin Access:</Text>
                                                     <Button
-                                                        color="gray"
-                                                        size="sm"
-                                                        disabled
+                                                        variant={user.admin ? "filled" : "outline"}
+                                                        color={user.admin ? "blue" : "gray"}
+                                                        size="xs"
+                                                        onClick={() => handleAdminToggle(user, !user.admin)}
+                                                        leftIcon={user.admin ? <FiCheck size={16} /> : <FiX size={16} />}
+                                                        className="min-w-[90px]"
                                                     >
-                                                        Delete
+                                                        {user.admin ? "Yes" : "No"}
                                                     </Button>
                                                 </div>
-                                            </Tooltip>
-                                        )}
-                                    </Group>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            )}
+
+                                                <div className="flex space-x-2 mt-4 pt-2 border-t border-gray-200">
+                                                    <Button
+                                                        variant="outline"
+                                                        leftIcon={<FiEdit size={16} />}
+                                                        onClick={() => router.push(`/edit-user?id=${user.id}`)}
+                                                        className="flex-1"
+                                                    >
+                                                        Edit
+                                                    </Button>
+
+                                                    {user.id !== currentUser?.id ? (
+                                                        <Button
+                                                            variant="outline"
+                                                            color="red"
+                                                            leftIcon={<FiTrash2 size={16} />}
+                                                            onClick={() => handleDeleteUser(user)}
+                                                            className="flex-1"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    ) : (
+                                                        <Tooltip
+                                                            label="For security reasons, you cannot delete your own account"
+                                                            position="top"
+                                                            withArrow
+                                                        >
+                                                            <div className="flex-1">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    color="gray"
+                                                                    leftIcon={<FiTrash2 size={16} />}
+                                                                    disabled
+                                                                    className="w-full"
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </div>
+                                                        </Tooltip>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    ))}
+
+                                    {/* Pagination for mobile */}
+                                    {totalPages > 1 && (
+                                        <div className="flex justify-center mt-6">
+                                            <Pagination
+                                                total={totalPages}
+                                                value={currentPage}
+                                                onChange={setCurrentPage}
+                                                size="sm"
+                                                radius="md"
+                                                withEdges
+                                                color="blue"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </MediaQuery>
+
+                            {/* Desktop Table View */}
+                            <MediaQuery smallerThan="md" styles={{ display: 'none' }}>
+                                <Box className="overflow-x-auto">
+                                    <Table className="min-w-full">
+                                        <thead className="border-b-4 border-vtk-yellow">
+                                            <tr>
+                                                <th><b>Name</b></th>
+                                                <th><b>Post</b></th>
+                                                <th><b>IBAN</b></th>
+                                                <th><b>Admin</b></th>
+                                                <th><b>Actions</b></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                            {currentUsers.map((user) => (
+                                                <tr key={user.id}>
+                                                    <td>{user.name}</td>
+                                                    <td>{user.post || "-"}</td>
+                                                    <td>{user.iban || "-"}</td>
+                                                    <td>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={user.admin ?? false}
+                                                            onChange={(e) => handleAdminToggle(user, e.target.checked)}
+                                                            className="h-5 w-5"
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Group spacing="xs">
+                                                            <Button
+                                                                variant="outline"
+                                                                leftIcon={<FiEdit size={16} />}
+                                                                onClick={() => router.push(`/edit-user?id=${user.id}`)}
+                                                                size="sm"
+                                                            >
+                                                                Edit
+                                                            </Button>
+                                                            {user.id !== currentUser?.id ? (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    color="red"
+                                                                    leftIcon={<FiTrash2 size={16} />}
+                                                                    onClick={() => handleDeleteUser(user)}
+                                                                    size="sm"
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            ) : (
+                                                                <Tooltip
+                                                                    label="For security reasons, you cannot delete your own account"
+                                                                    position="top"
+                                                                    withArrow
+                                                                >
+                                                                    <div>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            color="gray"
+                                                                            leftIcon={<FiTrash2 size={16} />}
+                                                                            disabled
+                                                                            size="sm"
+                                                                        >
+                                                                            Delete
+                                                                        </Button>
+                                                                    </div>
+                                                                </Tooltip>
+                                                            )}
+                                                        </Group>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+
+                                    {/* Pagination for desktop */}
+                                    {totalPages > 1 && (
+                                        <div className="flex justify-center mt-6">
+                                            <Pagination
+                                                total={totalPages}
+                                                value={currentPage}
+                                                onChange={setCurrentPage}
+                                                size="md"
+                                                radius="md"
+                                                withEdges
+                                                color="blue"
+                                            />
+                                        </div>
+                                    )}
+                                </Box>
+                            </MediaQuery>
+
+                            {/* User count summary */}
+                            <Text size="sm" color="dimmed" align="center" mt={4} mb={6}>
+                                Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, users.length)} of {users.length} users
+                            </Text>
+
+                            {/* Mobile action button */}
+                            <div className="md:hidden mt-4 flex justify-center">
+                                <Button
+                                    leftIcon={<FiUser size={16} />}
+                                    onClick={() => router.push('/account')}
+                                    fullWidth
+                                >
+                                    Your Account
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
 
             {/* Admin Toggle Modal */}
             <Modal
                 opened={adminToggleModalOpen}
                 onClose={() => setAdminToggleModalOpen(false)}
-                title={<strong>Edit Admin</strong>}
+                title={<Text weight={700}>Edit Admin Privileges</Text>}
+                centered
+                size="sm"
             >
                 {userToToggle && (
-                    <div>
-                        <p>Are you sure you want to {isAdmin ? 'grant' : 'revoke'} admin privileges for the following user?</p>
-                        <p><strong>Name:</strong> {userToToggle.name}</p>
-                        <p><strong>Post:</strong> {userToToggle.post}</p>
+                    <div className="space-y-3">
+                        <Text>Are you sure you want to {isAdmin ? 'grant' : 'revoke'} admin privileges for the following user?</Text>
+                        <Paper p="sm" withBorder>
+                            <Text><strong>Name:</strong> {userToToggle.name}</Text>
+                            <Text><strong>Post:</strong> {userToToggle.post || "-"}</Text>
+                        </Paper>
                     </div>
                 )}
-                <Group position="apart" mt="md">
-                    <Button onClick={() => setAdminToggleModalOpen(false)}>Cancel</Button>
-                    <Button color={isAdmin ? 'green' : 'red'} onClick={confirmAdminToggle}>{isAdmin ? 'Grant' : 'Revoke'} Admin</Button>
+                <Group position="apart" mt="xl">
+                    <Button variant="outline" onClick={() => setAdminToggleModalOpen(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        color={isAdmin ? 'green' : 'red'}
+                        onClick={confirmAdminToggle}
+                    >
+                        {isAdmin ? 'Grant' : 'Revoke'} Admin
+                    </Button>
                 </Group>
             </Modal>
 
@@ -283,19 +453,25 @@ export default function Users() {
             <Modal
                 opened={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
-                title={<strong>Delete User</strong>}
+                title={<Text weight={700}>Delete User</Text>}
+                centered
+                size="sm"
             >
                 {userToDelete && (
-                    <div>
-                        <Text mb={15}>Are you sure you want to delete the following user?</Text>
-                        <Text><strong>Name:</strong> {userToDelete.name}</Text>
-                        <Text><strong>Post:</strong> {userToDelete.post}</Text>
-                        <Text className="text-red-500 mt-4">Warning: This action cannot be undone.</Text>
-                        <Text className="text-red-500">Users with bills cannot be deleted. Delete all user bills first.</Text>
+                    <div className="space-y-3">
+                        <Text>Are you sure you want to delete the following user?</Text>
+                        <Paper p="sm" withBorder>
+                            <Text><strong>Name:</strong> {userToDelete.name}</Text>
+                            <Text><strong>Post:</strong> {userToDelete.post || "-"}</Text>
+                        </Paper>
+                        <Text className="text-red-500 font-medium">Warning: This action cannot be undone.</Text>
+                        <Text className="text-red-500 text-sm">Users with bills cannot be deleted. Delete all user bills first.</Text>
                     </div>
                 )}
-                <Group position="apart" mt="md">
-                    <Button onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+                <Group position="apart" mt="xl">
+                    <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+                        Cancel
+                    </Button>
                     <Button
                         color="red"
                         onClick={confirmDeleteUser}
@@ -305,6 +481,6 @@ export default function Users() {
                     </Button>
                 </Group>
             </Modal>
-        </div>
+        </>
     );
 }

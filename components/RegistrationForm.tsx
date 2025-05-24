@@ -1,4 +1,4 @@
-import { Button, TextInput, PasswordInput, Select } from '@mantine/core';
+import { Button, TextInput, PasswordInput, Select, Alert } from '@mantine/core';
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -14,7 +14,7 @@ export default function RegistrationForm() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const registerUser = async (event: any) => {
+    const registerUser = async (event: React.FormEvent) => {
         event.preventDefault();
         setLoading(true);
         
@@ -40,7 +40,8 @@ export default function RegistrationForm() {
             
             notifications.show({
                 title: "Registratie gelukt",
-                message: "Log in om verder te gaan."
+                message: "Log in om verder te gaan.",
+                color: "green"
             });
             
             router.push("/");
@@ -52,46 +53,67 @@ export default function RegistrationForm() {
     };
 
     return (
-        <form className="flex content-center justify-content flex-col space-y-4 min-w-[25em]" onSubmit={registerUser}>
+        <form className="flex flex-col space-y-4 w-full" onSubmit={registerUser}>
             <TextInput 
                 label="Naam" 
+                placeholder="Je volledige naam"
                 required 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="w-full"
             />
+            
             <TextInput 
                 label="Email" 
+                placeholder="voornaam.naam@vtk.be"
+                type="email"
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
             />
+            
             <Select 
                 label="Post" 
+                placeholder="Selecteer een post"
                 required 
                 data={posts} 
                 value={post}
                 onChange={(value) => setPost(value || "")}
+                className="w-full"
             />
+            
             <TextInput 
                 label="Rekeningnummer" 
+                placeholder="IBAN"
                 required 
                 value={iban}
                 onChange={(e) => setIban(e.target.value)}
+                className="w-full"
             />
+            
             <PasswordInput 
                 label="Wachtwoord" 
+                placeholder="Minimaal 6 karakters"
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
             />
             
-            {error && <span className="flex justify-center text-red-600 font-bold">{error}</span>}
+            {error && (
+                <Alert color="red" title="Fout bij registratie" className="mt-2">
+                    {error}
+                </Alert>
+            )}
             
             <Button 
-                color="vtk-yellow.5" 
-                className="bg-vtk-yellow h-[2em] m-5" 
+                color="vtk-yellow" 
                 type="submit"
                 loading={loading}
+                fullWidth
+                size="md"
+                className="mt-6"
             >
                 Registreer
             </Button>

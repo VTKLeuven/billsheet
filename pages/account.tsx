@@ -17,8 +17,10 @@ export default function Account() {
     }
 
     return (
-        <div className="flex min-w-full min-h-full object-fill justify-center align-center m-10">
-            {!session ? <AuthUI /> : <ProfileForm />}
+        <div className="flex flex-col w-full px-4 py-6 md:py-10 md:px-6">
+            <div className="w-full max-w-3xl mx-auto">
+                {!session ? <AuthUI /> : <ProfileForm />}
+            </div>
         </div>
     );
 }

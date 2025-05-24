@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Loader, Pagination, TextInput, Group, Select, NumberInput, Button, Box, Collapse, Chip } from "@mantine/core";
+import { Table, Loader, Pagination, TextInput, Group, Select, NumberInput, Button, Box, Collapse, Chip, MediaQuery } from "@mantine/core";
 import { IBill } from "../types";
 import BillListItem from "./BillListItem";
 import { AiOutlineSearch, AiOutlineFilter, AiOutlineClear } from "react-icons/ai";
@@ -276,84 +276,90 @@ export default function BillList({ adminMode = false }: IBillList) {
     };
 
     return (
-        <div className="w-3/4 m-16 mt-5">
-            <h1 className="text-3xl font-bold border-b-8 border-vtk-yellow">
+        <div className="w-full px-4 py-6 md:py-10 md:px-6">
+            <h1 className="text-2xl lg:text-3xl font-bold border-b-8 border-vtk-yellow">
                 {adminMode ? 'All Bills' : 'My Bills'}
             </h1>
 
-            {/* Search and filter section */}
+            {/* Search and filter section - keep responsive */}
             <div className="mb-6 mt-4">
-                <Group position="apart" align="flex-end" mb={10}>
-                    <Group spacing={10} style={{ width: '65%' }}>
+                <Group position="apart" align="flex-end" mb={10} spacing="sm">
+                    <Group spacing={10} style={{ width: '100%', flexDirection: 'column' }} className="lg:flex-row">
                         <TextInput
                             placeholder="Search in all fields"
                             value={filters.searchText}
                             onChange={(e) => updateFilter('searchText', e.target.value)}
                             icon={<AiOutlineSearch size={16} />}
-                            style={{ flexGrow: 1 }}
+                            style={{ width: '100%' }}
                         />
-                        <Chip
-                            checked={filters.unpaid}
-                            onChange={() => updateFilter('unpaid', !filters.unpaid)}
-                            size="sm"
-                            variant="filled"
-                            color="yellow"
-                        >
-                            Unpaid Only
-                        </Chip>
-                    </Group>
-                    <Group spacing={8}>
-                        {activeFilters.length > 0 && (
-                            <Group spacing={6}>
-                                {activeFilters.map(filter => (
-                                    <Chip 
-                                        key={filter} 
-                                        size="xs" 
-                                        checked={true}
-                                        onClick={() => clearSingleFilter(filter)}
-                                        variant="filled"
-                                        color="blue"
-                                        styles={{
-                                            label: { 
-                                                cursor: 'pointer',
-                                                '&:hover': { textDecoration: 'line-through' }
-                                            }
-                                        }}
-                                    >
-                                        {filter} x
-                                    </Chip>
-                                ))}
-                            </Group>
-                        )}
-                        <Button
-                            variant="subtle"
-                            leftIcon={<AiOutlineFilter size={16} />}
-                            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                            rightIcon={showAdvancedSearch ? <BiChevronUp size={16} /> : <BiChevronDown size={16} />}
-                        >
-                            Filters
-                        </Button>
-                        {activeFilters.length > 0 && (
-                            <Button
-                                variant="subtle"
-                                color="red"
-                                leftIcon={<AiOutlineClear size={16} />}
-                                onClick={clearFilters}
+                        <Group spacing={8} position="apart" style={{ width: '100%' }}>
+                            <Chip
+                                checked={filters.unpaid}
+                                onChange={() => updateFilter('unpaid', !filters.unpaid)}
+                                size="sm"
+                                variant="filled"
+                                color="yellow"
                             >
-                                Clear
-                            </Button>
-                        )}
+                                Unpaid Only
+                            </Chip>
+
+                            <Group spacing={8}>
+                                <Button
+                                    variant="subtle"
+                                    leftIcon={<AiOutlineFilter size={16} />}
+                                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                    rightIcon={showAdvancedSearch ? <BiChevronUp size={16} /> : <BiChevronDown size={16} />}
+                                    compact
+                                >
+                                    Filters
+                                </Button>
+                                {activeFilters.length > 0 && (
+                                    <Button
+                                        variant="subtle"
+                                        color="red"
+                                        leftIcon={<AiOutlineClear size={16} />}
+                                        onClick={clearFilters}
+                                        compact
+                                    >
+                                        Clear
+                                    </Button>
+                                )}
+                            </Group>
+                        </Group>
                     </Group>
                 </Group>
+
+                {activeFilters.length > 0 && (
+                    <Group spacing={6} mb={10}>
+                        {activeFilters.map(filter => (
+                            <Chip
+                                key={filter}
+                                size="xs"
+                                checked={true}
+                                onClick={() => clearSingleFilter(filter)}
+                                variant="filled"
+                                color="blue"
+                                styles={{
+                                    label: {
+                                        cursor: 'pointer',
+                                        '&:hover': { textDecoration: 'line-through' }
+                                    }
+                                }}
+                            >
+                                {filter} x
+                            </Chip>
+                        ))}
+                    </Group>
+                )}
 
                 <Collapse in={showAdvancedSearch}>
                     <Box p={15} sx={(theme) => ({
                         backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
                         borderRadius: theme.radius.md
                     })}>
-                        <Group grow align="flex-start" mb={15}>
-                            <Group dir='column' grow>
-                                <Group grow>
+                        <div className="flex flex-col lg:flex-row gap-4">
+                            <div className="w-full space-y-4">
+                                <div className="flex flex-col lg:flex-row gap-4">
                                     <NumberInput
                                         label="Minimum Amount"
                                         placeholder="Min €"
@@ -362,6 +368,7 @@ export default function BillList({ adminMode = false }: IBillList) {
                                         precision={2}
                                         min={0}
                                         removeTrailingZeros
+                                        style={{ width: '100%' }}
                                     />
                                     <NumberInput
                                         label="Maximum Amount"
@@ -371,9 +378,10 @@ export default function BillList({ adminMode = false }: IBillList) {
                                         precision={2}
                                         min={0}
                                         removeTrailingZeros
+                                        style={{ width: '100%' }}
                                     />
-                                </Group>
-                                <Group grow>
+                                </div>
+                                <div className="flex flex-col lg:flex-row gap-4">
                                     <TextInput
                                         label="Start Date"
                                         placeholder="DD/MM/YYYY"
@@ -388,6 +396,7 @@ export default function BillList({ adminMode = false }: IBillList) {
                                             }
                                         }}
                                         rightSection={<FiCalendar size={16} color="gray" />}
+                                        style={{ width: '100%' }}
                                     />
 
                                     <TextInput
@@ -404,16 +413,18 @@ export default function BillList({ adminMode = false }: IBillList) {
                                             }
                                         }}
                                         rightSection={<FiCalendar size={16} color="gray" />}
+                                        style={{ width: '100%' }}
                                     />
-                                </Group>
-                            </Group>
+                                </div>
+                            </div>
 
-                            <Group dir="column" grow>
+                            <div className="w-full space-y-4">
                                 <TextInput
                                     label="Name"
                                     placeholder="Filter by name"
                                     value={filters.name}
                                     onChange={(e) => updateFilter('name', e.target.value)}
+                                    style={{ width: '100%' }}
                                 />
                                 <Select
                                     label="Post"
@@ -422,55 +433,75 @@ export default function BillList({ adminMode = false }: IBillList) {
                                     value={filters.post}
                                     onChange={(val) => updateFilter('post', val || '')}
                                     clearable
+                                    style={{ width: '100%' }}
                                 />
-                            </Group>
-                        </Group>
+                            </div>
+                        </div>
                     </Box>
                 </Collapse>
             </div>
 
             {bills.length > 0 ? (
                 <>
-                    <Table className="min-w-full">
-                        <thead className="border-b-4 border-vtk-yellow">
-                            <tr>
-                                <td className="pr-4">
-                                    <b>Omschrijving</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Event</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Post</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Naam</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Datum</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Bedrag</b>
-                                </td>
-                                <td className="pr-4">
-                                    <b>Betaald</b>
-                                </td>
-                                <td>
-                                    <b>Actions</b>
-                                </td>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-vtk-yellow">
+                    {/* Desktop Table View */}
+                    <MediaQuery smallerThan="md" styles={{ display: 'none' }}>
+                        <Table className="min-w-full">
+                            <thead className="border-b-4 border-vtk-yellow">
+                                <tr>
+                                    <td className="pr-4" style={{ maxWidth: '250px' }}>
+                                        <b>Omschrijving</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Event</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Post</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Naam</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Datum</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Bedrag</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Betaald</b>
+                                    </td>
+                                    <td>
+                                        <b>Actions</b>
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-vtk-yellow">
+                                {currentBills.map((bill: IBill) => (
+                                    <BillListItem
+                                        key={bill.id}
+                                        bill={bill}
+                                        onDelete={handleBillDeleted}
+                                        adminMode={adminMode}
+                                        isMobile={false}
+                                    />
+                                ))}
+                            </tbody>
+                        </Table>
+                    </MediaQuery>
+
+                    {/* Mobile Card View */}
+                    <MediaQuery largerThan="md" styles={{ display: 'none' }}>
+                        <div className="space-y-4">
                             {currentBills.map((bill: IBill) => (
                                 <BillListItem
                                     key={bill.id}
                                     bill={bill}
                                     onDelete={handleBillDeleted}
                                     adminMode={adminMode}
+                                    isMobile={true}
                                 />
                             ))}
-                        </tbody>
-                    </Table>
+                        </div>
+                    </MediaQuery>
 
                     {totalPages > 1 && (
                         <div className="flex justify-center mt-6">
@@ -480,12 +511,13 @@ export default function BillList({ adminMode = false }: IBillList) {
                                 onChange={handlePageChange}
                                 color="yellow"
                                 radius="md"
+                                size="sm"
                             />
                         </div>
                     )}
 
                     {filteredBills.length > 0 ? (
-                        <div className="mt-3 text-gray-600 text-center">
+                        <div className="mt-3 text-gray-600 text-center text-sm">
                             Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredBills.length)} of {filteredBills.length} bills
                         </div>
                     ) : (
@@ -499,6 +531,6 @@ export default function BillList({ adminMode = false }: IBillList) {
                     <h3 className="text-xl text-gray-600">No bills found</h3>
                 </div>
             )}
-        </div >
+        </div>
     );
 }

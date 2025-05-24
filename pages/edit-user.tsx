@@ -2,7 +2,7 @@ import { useUser, useSupabaseClient } from '../contexts/SupabaseContext';
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import type { Profile } from '../types';
-import { Button, TextInput, Select, Loader } from "@mantine/core";
+import { Button, TextInput, Select, Loader, Paper, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { posts } from "../utils/constants";
 import { createAdminClient } from '../lib/supabase';
@@ -39,7 +39,7 @@ export default function EditUser({ user }: EditUserProps) {
         }
     }, [profile, router]);
 
-    const updateUser = async (event: any) => {
+    const updateUser = async (event: React.FormEvent) => {
         event.preventDefault();
         setLoading(true);
 
@@ -68,7 +68,7 @@ export default function EditUser({ user }: EditUserProps) {
                 message: "User updated successfully",
                 color: "green",
             });
-            
+
             router.push("/users");
         } catch (error) {
             console.error("Error updating user:", error);
@@ -101,39 +101,83 @@ export default function EditUser({ user }: EditUserProps) {
     }
 
     if (!user) {
-        return <div>Loading...</div>;
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader size="xl" color="vtk-yellow" />
+            </div>
+        );
     }
 
     return (
-        <div className="flex justify-center align-center border-2 border-vtk-yellow rounded-lg p-4 sm:p-10">
-            <form className="flex align-center flex-col w-full max-w-md space-y-2" onSubmit={updateUser}>
-                <h1 className="text-3xl font-bold border-b-4 border-vtk-yellow m-6">Edit User</h1>
-                <TextInput
-                    label="Name"
-                    required
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-                <Select
-                    label="Post"
-                    data={posts}
-                    name="post"
-                    required
-                    value={post}
-                    onChange={(value) => setPost(value || '')}
-                />
-                <TextInput
-                    label="IBAN"
-                    required
-                    name="iban"
-                    value={iban}
-                    onChange={(e) => setIban(e.target.value)}
-                />
-                <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] mt-5 mb-5" type="submit" loading={loading}>
-                    Update User
-                </Button>
-            </form>
+        <div className="flex flex-col w-full px-4 py-6 md:py-10 md:px-6">
+            <div className="w-full max-w-lg mx-auto">
+                <Paper shadow="sm" radius="md" className="w-full p-4 sm:p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <Text size="xl" weight={700} className="text-vtk-blue border-b-4 border-vtk-yellow pb-2">
+                            Edit User
+                        </Text>
+                        <Button
+                            variant="subtle"
+                            color="gray"
+                            onClick={() => router.push('/users')}
+                            className="hidden sm:block"
+                        >
+                            Back to Users
+                        </Button>
+                    </div>
+
+                    <form className="flex flex-col space-y-4 w-full" onSubmit={updateUser}>
+                        <TextInput
+                            label="Name"
+                            required
+                            name="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full"
+                        />
+
+                        <Select
+                            label="Post"
+                            data={posts}
+                            name="post"
+                            required
+                            value={post}
+                            onChange={(value) => setPost(value || '')}
+                            className="w-full"
+                        />
+
+                        <TextInput
+                            label="IBAN"
+                            required
+                            name="iban"
+                            value={iban}
+                            onChange={(e) => setIban(e.target.value)}
+                            className="w-full"
+                        />
+
+                        <div className="flex flex-col sm:flex-row gap-3 justify-end mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => router.push('/users')}
+                                fullWidth
+                                className="sm:hidden"
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                color="vtk-yellow"
+                                type="submit"
+                                loading={loading}
+                                fullWidth
+                                className="sm:w-auto"
+                            >
+                                Update User
+                            </Button>
+                        </div>
+                    </form>
+                </Paper>
+            </div>
         </div>
     );
 }
