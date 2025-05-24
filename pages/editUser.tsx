@@ -1,8 +1,8 @@
 import { useUser, useSupabaseClient } from '../contexts/SupabaseContext';
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Profile } from '../types';
-import { Button, TextInput, Select } from "@mantine/core";
+import { Button, TextInput, Select, Loader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { posts } from "../utils/constants";
 import { createAdminClient } from '../lib/supabase';
@@ -12,42 +12,93 @@ interface EditUserProps {
 }
 
 export default function EditUser({ user }: EditUserProps) {
-    const supabase = useSupabaseClient();
     const profile = useUser();
     const router = useRouter();
-    const [name, setName] = useState(user.name);
-    const [post, setPost] = useState(user.post);
-    const [iban, setIban] = useState(user.iban);
+    const [name, setName] = useState('');
+    const [post, setPost] = useState('');
+    const [iban, setIban] = useState('');
     const [loading, setLoading] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
 
-    if (!profile?.admin) {
-        return <p>Access Denied</p>;
-    }
+    // Initialize form values after user data is available
+    useEffect(() => {
+        if (user) {
+            setName(user.name || '');
+            setPost(user.post || '');
+            setIban(user.iban || '');
+        }
+    }, [user]);
+
+    // Check admin status
+    useEffect(() => {
+        if (profile !== undefined) {
+            setCheckingAuth(false);
+            if (!profile?.admin) {
+                router.push('/');
+            }
+        }
+    }, [profile, router]);
 
     const updateUser = async (event: any) => {
         event.preventDefault();
         setLoading(true);
 
-        const { error } = await supabase
-            .from("profiles")
-            .update({ name, post, iban })
-            .eq("id", user.id);
-
-        setLoading(false);
-
-        if (error) {
-            notifications.show({
-                title: "Error",
-                message: "Failed to update user",
+        try {
+            const response = await fetch('/api/updateUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: user.id,
+                    name,
+                    post,
+                    iban,
+                }),
             });
-        } else {
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to update user');
+            }
+
             notifications.show({
                 title: "Success",
                 message: "User updated successfully",
+                color: "green",
             });
+            
             router.push("/users");
+        } catch (error) {
+            console.error("Error updating user:", error);
+            notifications.show({
+                title: "Error",
+                message: error instanceof Error ? error.message : "Failed to update user",
+                color: "red",
+            });
+        } finally {
+            setLoading(false);
         }
     };
+
+    // Show loading state while checking authentication
+    if (checkingAuth) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader size="xl" color="vtk-yellow" />
+            </div>
+        );
+    }
+
+    // Show access denied if not admin (this will redirect)
+    if (!profile?.admin) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader size="xl" color="vtk-yellow" />
+            </div>
+        );
+    }
 
     if (!user) {
         return <div>Loading...</div>;
@@ -61,7 +112,7 @@ export default function EditUser({ user }: EditUserProps) {
                     label="Name"
                     required
                     name="name"
-                    value={name ?? ''}
+                    value={name}
                     onChange={(e) => setName(e.target.value)}
                 />
                 <Select
@@ -70,13 +121,13 @@ export default function EditUser({ user }: EditUserProps) {
                     name="post"
                     required
                     value={post}
-                    onChange={(value) => setPost(value)}
+                    onChange={(value) => setPost(value || '')}
                 />
                 <TextInput
                     label="IBAN"
                     required
                     name="iban"
-                    value={iban ?? ''}
+                    value={iban}
                     onChange={(e) => setIban(e.target.value)}
                 />
                 <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em] mt-5 mb-5" type="submit" loading={loading}>
