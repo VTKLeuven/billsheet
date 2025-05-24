@@ -1,4 +1,4 @@
-import { Checkbox, Modal, Button, Group, Badge } from "@mantine/core";
+import { Checkbox, Modal, Button, Group, Badge, Tooltip } from "@mantine/core";
 import { IBill } from "../types";
 import { AiFillEdit, AiOutlineDownload, AiOutlineDelete } from "react-icons/ai";
 import { useState } from "react";
@@ -20,7 +20,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
     async function handlePaidChange(e: any) {
         // Only admins can change paid status
         if (!adminMode) return;
-        
+
         setPaid(e.target.checked);
 
         try {
@@ -84,7 +84,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
     async function handleDelete() {
         // Only admins can delete bills
         if (!adminMode) return;
-        
+
         setIsDeleting(true);
         try {
             const response = await fetch(`/api/deleteBill?id=${bill.id}`, {
@@ -97,7 +97,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
                     message: 'Bill deleted successfully',
                     color: 'green'
                 });
-                
+
                 // Notify parent component to refresh the list
                 if (onDelete) {
                     onDelete();
@@ -153,7 +153,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
                         <Checkbox checked={paid} onChange={handlePaidChange} />
                     ) : (
                         // Regular users see a status badge
-                        <Badge 
+                        <Badge
                             color={paid ? "green" : "yellow"}
                             variant="filled"
                         >
@@ -163,13 +163,19 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
                 </td>
                 <td>
                     {editDisabled ? (
-                        // Paid bills can't be edited - show disabled button
-                        <button
-                            disabled
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md bg-gray-200 text-gray-400 cursor-not-allowed"
+                        // Paid bills can't be edited - show disabled button with tooltip
+                        <Tooltip
+                            label="Betaalde rekeningen kunnen niet worden bewerkt"
+                            position="top"
+                            withArrow
                         >
-                            <AiFillEdit />
-                        </button>
+                            <button
+                                disabled
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md bg-gray-200 text-gray-400 cursor-not-allowed"
+                            >
+                                <AiFillEdit />
+                            </button>
+                        </Tooltip>
                     ) : (
                         // Unpaid bills can be edited
                         <Link href={`/editBill?id=${bill.id}`}
@@ -195,7 +201,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
                         )}
                     </button>
                 </td>
-                
+
                 {/* Only show delete button if in admin mode */}
                 {adminMode && (
                     <td>
@@ -220,16 +226,16 @@ export default function BillListItem({ bill, onDelete, adminMode = false }: IBil
                     <p className="mb-4">Are you sure you want to delete this bill?</p>
                     <p className="mb-4 font-bold">{bill.desc} - €{bill.amount ? (bill.amount / 100).toFixed(2) : "0.00"}</p>
                     <p className="mb-6 text-red-600">This action cannot be undone.</p>
-                    
+
                     <Group position="right">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => setShowDeleteModal(false)}
                         >
                             Cancel
                         </Button>
-                        <Button 
-                            color="red" 
+                        <Button
+                            color="red"
                             onClick={handleDelete}
                             loading={isDeleting}
                         >
