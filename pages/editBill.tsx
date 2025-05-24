@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useRef, FormEvent } from 'react';
 import { useUser } from '../contexts/SupabaseContext';
 import { IBill } from '../types';
 import { Button, TextInput, Select, NumberInput } from '@mantine/core';
@@ -14,31 +14,65 @@ export default function EditBill({ bill }: { bill: IBill }) {
     const [loading, setLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<string | null>(bill.payment_method);
 
+    // Create refs for all form fields
+    const nameRef = useRef<HTMLInputElement>(null);
+    const postRef = useRef<HTMLInputElement>(null);
+    const [dateValue, setDateValue] = useState<Date | null>(bill.date ? new Date(bill.date) : null);
+    const activityRef = useRef<HTMLInputElement>(null);
+    const descRef = useRef<HTMLInputElement>(null);
+    const amountRef = useRef<HTMLInputElement>(null);
+    const ibanRef = useRef<HTMLInputElement>(null);
+
     if (!user?.admin) {
         return <p>Access Denied</p>
     }
 
-    const updateBill = async (event: any) => {
+    // Check if bill is already paid
+    if (bill.paid) {
+        return (
+            <div className="flex flex-col items-center justify-center p-8">
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 w-full max-w-md">
+                    <p className="text-yellow-700">
+                        This bill has already been marked as paid and cannot be edited.
+                    </p>
+                </div>
+                <Button
+                    onClick={() => router.push('/admin')}
+                    color="vtk-yellow.5"
+                    className="bg-vtk-yellow h-[2em]"
+                >
+                    Back to Admin Page
+                </Button>
+            </div>
+        );
+    }
+
+    const updateBill = async (event: FormEvent) => {
         event.preventDefault();
         setLoading(true);
 
-        function formatDate(timestamp: number) {
-            const date = new Date(timestamp)
-            return date.getFullYear() + "-" + ("0" + (date.getMonth() + 1)).slice(-2) + "-" + ("0" + date.getDate()).slice(-2)
+        function formatDate(dateValue: string | number | Date) {
+            const date = new Date(dateValue);
+            return date.getFullYear() + "-" +
+                ("0" + (date.getMonth() + 1)).slice(-2) + "-" +
+                ("0" + date.getDate()).slice(-2);
         }
 
         try {
+            // Use refs to safely access form values
+            const amountValue = amountRef.current?.value || "0";
+
             // Prepare data to send to API
             const billData = {
                 id: bill.id,
-                name: event.target.name.value,
-                post: event.target.post.value,
-                date: formatDate(event.target.date.value),
-                activity: event.target.activity.value,
-                desc: event.target.desc.value,
-                amount: Math.round(parseFloat(String(event.target.amount.value).replace(',', '.')) * 100),
-                payment_method: event.target.paymentMethod.value,
-                iban: event.target.iban.value,
+                name: nameRef.current?.value || "",
+                post: postRef.current?.value || "",
+                date: formatDate(dateValue || new Date()),
+                activity: activityRef.current?.value || "",
+                desc: descRef.current?.value || "",
+                amount: Math.round(parseFloat(String(amountValue).replace(',', '.')) * 100),
+                payment_method: paymentMethod || "vtk",
+                iban: paymentMethod === 'personal' ? (ibanRef.current?.value || "") : "",
             };
 
             // Call the API endpoint
@@ -52,8 +86,6 @@ export default function EditBill({ bill }: { bill: IBill }) {
 
             const result = await response.json();
 
-            setLoading(false);
-
             if (!response.ok) {
                 throw new Error(result.error || 'Failed to update bill');
             }
@@ -65,13 +97,14 @@ export default function EditBill({ bill }: { bill: IBill }) {
 
             router.push('/admin');
         } catch (error) {
-            setLoading(false);
             console.error("Error updating bill:", error);
 
             notifications.show({
                 title: 'Error',
                 message: error instanceof Error ? error.message : 'Failed to update bill',
             });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -83,16 +116,56 @@ export default function EditBill({ bill }: { bill: IBill }) {
         <div className="flex justify-center align-center border-2 border-vtk-yellow rounded-lg p-4 sm:p-10">
             <form className="flex align-center flex-col w-full max-w-md space-y-2" onSubmit={updateBill}>
                 <h1 className="text-3xl font-bold border-b-4 border-vtk-yellow m-6">Edit Bill</h1>
-                <TextInput label="Name" required name="name" defaultValue={bill.name} />
-                <Select label="Post" data={posts} name="post" required defaultValue={bill.post} />
-                <DatePickerInput label="Datum Uitgave" name="date" required defaultValue={new Date(bill.date ?? Date.now())} />
-                <TextInput label="Activity" required name="activity" defaultValue={bill.activity} />
-                <TextInput label="Description" required name="desc" defaultValue={bill.desc} />
-                <NumberInput label="Amount" required name="amount" defaultValue={bill.amount / 100} inputMode="decimal" min={0} precision={2} decimalSeparator="," placeholder="10.23" />
+                <TextInput
+                    label="Name"
+                    required
+                    defaultValue={bill.name}
+                    ref={nameRef}
+                />
+                <Select
+                    label="Post"
+                    data={posts}
+                    required
+                    defaultValue={bill.post}
+                    onChange={(value) => {
+                        if (postRef.current) {
+                            postRef.current.value = value || "";
+                        }
+                    }}
+                    ref={postRef}
+                />
+                <DatePickerInput
+                    label="Datum Uitgave"
+                    required
+                    value={dateValue}
+                    onChange={setDateValue}
+                />
+                <TextInput
+                    label="Activity"
+                    required
+                    defaultValue={bill.activity}
+                    ref={activityRef}
+                />
+                <TextInput
+                    label="Description"
+                    required
+                    defaultValue={bill.desc}
+                    ref={descRef}
+                />
+                <NumberInput
+                    label="Amount"
+                    required
+                    defaultValue={bill.amount / 100}
+                    inputMode="decimal"
+                    min={0}
+                    precision={2}
+                    decimalSeparator=","
+                    placeholder="10.23"
+                    ref={amountRef}
+                />
                 <Select
                     label="Payment Method"
                     required
-                    name="paymentMethod"
                     data={[
                         { value: 'vtk', label: 'VTK' },
                         { value: 'personal', label: 'Personal' },
@@ -101,9 +174,19 @@ export default function EditBill({ bill }: { bill: IBill }) {
                     onChange={(value) => setPaymentMethod(value)}
                 />
                 {paymentMethod === 'personal' && (
-                    <TextInput label="IBAN" required name="iban" defaultValue={bill.iban} />
+                    <TextInput
+                        label="IBAN"
+                        required
+                        defaultValue={bill.iban}
+                        ref={ibanRef}
+                    />
                 )}
-                <Button color="vtk-yellow.5" className="bg-vtk-yellow h-[2em]" type="submit" loading={loading}>
+                <Button
+                    color="vtk-yellow.5"
+                    className="bg-vtk-yellow h-[2em]"
+                    type="submit"
+                    loading={loading}
+                >
                     Update Bill
                 </Button>
             </form>
@@ -115,7 +198,7 @@ export async function getServerSideProps(context: any) {
     const { id } = context.query;
 
     try {
-        const supabase = createAdminClient()
+        const supabase = createAdminClient();
 
         if (id) {
             const { data, error } = await supabase
@@ -125,7 +208,7 @@ export async function getServerSideProps(context: any) {
                 .single();
 
             if (error) {
-                console.error("Error fetching bill:", error)
+                console.error("Error fetching bill:", error);
                 return {
                     notFound: true,
                 };
@@ -138,7 +221,7 @@ export async function getServerSideProps(context: any) {
 
         return { notFound: true };
     } catch (error) {
-        console.error("Edit bill page error:", error)
+        console.error("Edit bill page error:", error);
         return { notFound: true };
     }
 }

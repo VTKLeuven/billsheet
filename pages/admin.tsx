@@ -1,43 +1,13 @@
-import BillList from '../components/BillList'
-import { IBill } from '../types'
-import { useUser } from '../contexts/SupabaseContext'
-import React from 'react'
-import { createAdminClient } from '../lib/supabase'
+import { useUser } from '../contexts/SupabaseContext';
+import BillList from '../components/BillList';
 
-interface IAdminInput {
-    billList: [IBill]
-}
-
-export default function Admin({ billList }: IAdminInput) {
+export default function Admin() {
     const user = useUser();
 
+    // Admin access check
     if (!user?.admin) {
-        return <p>Access Denied</p>
+        return <p className="p-8 text-xl text-center">Access Denied</p>;
     }
-    return (
-        <BillList billList={billList} />
-    )
-}
 
-export async function getServerSideProps() {
-    try {
-        const supabase = createAdminClient()
-
-        const { data: billList, error } = await supabase
-            .from('bills')
-            .select()
-            .order('created_at', { ascending: false })
-
-        if (error) {
-            console.error("Error fetching bills:", error)
-            return { props: { billList: [] } }
-        }
-
-        return {
-            props: { billList }
-        }
-    } catch (error) {
-        console.error("Admin page error:", error)
-        return { props: { billList: [] } }
-    }
+    return <BillList adminMode={true} />;
 }

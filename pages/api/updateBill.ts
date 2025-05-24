@@ -30,6 +30,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: "Bill ID is required" });
         }
 
+        // First, check if the bill is already paid
+        const { data: existingBill, error: fetchError } = await supabase
+            .from('bills')
+            .select('paid')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) {
+            console.error("Fetch bill error:", fetchError);
+            return res.status(500).json({ error: fetchError.message });
+        }
+
+        // If the bill is already paid, don't allow updates
+        if (existingBill && existingBill.paid) {
+            return res.status(403).json({ error: "Paid bills cannot be edited" });
+        }
+
+        // If not paid, proceed with the update
         const { error, data } = await supabase
             .from('bills')
             .update({
