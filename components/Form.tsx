@@ -45,17 +45,15 @@ export default function Form() {
     });
 
     useEffect(() => {
-        const updateForm = () => {
-            form.setValues({
-                name: user?.name ?? "",
-                post: user?.post ?? "",
-                iban: user?.iban ?? "",
-            })
-        }
+        // Only set initial values from user data once
         if (user) {
-            updateForm()
+            form.setFieldValue("name", user.name || "");
+            form.setFieldValue("post", user.post || "");
+            form.setFieldValue("iban", user.iban || "");
         }
-    }, [user]);
+        // Empty dependency array means this only runs once when component mounts
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     function isAllowedExtension(name: string) {
         const lowerName = name.toLowerCase();
