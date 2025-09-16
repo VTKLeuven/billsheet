@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, TextInput, Alert, Text } from '@mantine/core';
 import { useSupabaseClient } from "../contexts/SupabaseContext";
+import { isEmailAllowed, getAllowedDomainsText } from "../utils/emailValidation";
 import Link from "next/link";
 
 export default function ResetPasswordForm() {
@@ -19,8 +20,8 @@ export default function ResetPasswordForm() {
             return;
         }
 
-        if (!email.endsWith("@vtk.be")) {
-            setMessage("Alleen @vtk.be email adressen zijn toegestaan");
+        if (!isEmailAllowed(email)) {
+            setMessage(getAllowedDomainsText());
             setIsSuccess(false);
             return;
         }

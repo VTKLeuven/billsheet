@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { createAdminClient } from '../../lib/supabase'
+import { isEmailAllowed } from '../../utils/emailValidation'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
@@ -7,8 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const supabaseAdmin = createAdminClient()
         
         // Email domain validation
-        if (!req.body.email.endsWith("@vtk.be")) {
-            return res.status(403).json({ error: "Email should end with @vtk.be" })
+        if (!isEmailAllowed(req.body.email)) {
+            return res.status(403).json({ error: "Email domain not allowed" })
         }
 
         // Create the user with admin privileges

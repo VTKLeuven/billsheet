@@ -28,3 +28,9 @@ export const posts = [
     "Mechanix",
     "Revue",
 ];
+
+export const allowedEmailDomains = [
+    "@vtk.be",
+    "@bestleuven.eu",
+    "@best-eu.org"
+];
