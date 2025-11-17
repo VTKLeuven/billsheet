@@ -2,7 +2,7 @@ export const posts = [
     "Acti",
     "BR",
     "Beheer",
-    "Commun",
+    "Commu",
     "Cultuur",
     "Cudi",
     "Dev",
