@@ -20,6 +20,7 @@ interface FilterState {
     post: string;
     name: string;
     unpaid: boolean;
+    booked: boolean;
 }
 
 export default function BillList({ adminMode = false }: IBillList) {
@@ -39,6 +40,7 @@ export default function BillList({ adminMode = false }: IBillList) {
         post: '',
         name: '',
         unpaid: false,
+        booked: false,
     });
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const [uniquePosts, setUniquePosts] = useState<string[]>([]);
@@ -131,6 +133,7 @@ export default function BillList({ adminMode = false }: IBillList) {
             post: '',
             name: '',
             unpaid: false,
+            booked: false,
         });
         setCurrentPage(1);
     };
@@ -157,6 +160,10 @@ export default function BillList({ adminMode = false }: IBillList) {
         // First apply non-fuzzy filters
         if (filters.unpaid) {
             result = result.filter(bill => !bill.paid);
+        }
+
+        if (filters.booked) {
+            result = result.filter(bill => bill.booked);
         }
 
         if (filters.amountMin !== undefined) {
@@ -468,6 +475,9 @@ export default function BillList({ adminMode = false }: IBillList) {
                                     </td>
                                     <td className="pr-4">
                                         <b>Betaald</b>
+                                    </td>
+                                    <td className="pr-4">
+                                        <b>Ingeboekt</b>
                                     </td>
                                     <td>
                                         <b>Actions</b>
