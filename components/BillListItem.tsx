@@ -206,7 +206,9 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     // Desktop table row view
     return (
         <tr>
-            <td>{bill.desc}</td>
+            <td className="pr-4 break-words" style={{ maxWidth: '250px' }}>
+                {bill.desc}
+            </td>
             <td>{bill.activity}</td>
             <td>{bill.post}</td>
             <td>{bill.name}</td>
