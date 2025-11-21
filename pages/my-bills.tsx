@@ -34,5 +34,5 @@ export default function MyBills() {
     }
 
     // Only render BillList if user is authenticated
-    return <BillList adminMode={false} />;
+    return <BillList adminMode={false} currentUser={user} />;
 }
