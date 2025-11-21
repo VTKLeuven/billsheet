@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { requireAuth } from '../../lib/authMiddleware';
 
+
 function getAcademicYearTag(date: Date, format: 'short' | 'long' = 'short'): string {
     const year = date.getFullYear();
     const month = date.getMonth() + 1; // getMonth() returns 0-based month
@@ -181,14 +182,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (image !== null) {
-            const scaledDims = image.scaleToFit(580, 570);
+            const maxWidth = 580;
+            const maxHeight = 570;
+            const scaledDims = image.scaleToFit(maxWidth, maxHeight);
+            const x = (590 - scaledDims.width) / 2;
+            const y = page.getHeight() - scaledDims.height - 220; // 20pt margin from top
             page.drawImage(image, {
-                x: (590 - scaledDims.height) / 2,
-                y: 590,
+                x,
+                y,
                 width: scaledDims.width,
-                height: scaledDims.height,
-                rotate: degrees(-90)
-            })
+                height: scaledDims.height
+            });
         }
 
         const pdfBytes = await doc.save()
