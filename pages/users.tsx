@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSupabase } from '../contexts/SupabaseContext';
 import { Profile } from "../types";
-import { Button, Table, Group, Modal, Text, Loader, Tooltip, Paper, Box, MediaQuery, Badge, Card, Pagination } from "@mantine/core";
+import { Button, Table, Group, Modal, Text, Loader, Tooltip, Paper, Box, MediaQuery, Badge, Card, Pagination, Select } from "@mantine/core";
 import { notifications } from '@mantine/notifications';
 import { FiEdit, FiTrash2, FiUser, FiCheck, FiX } from "react-icons/fi";
+import { posts } from '../utils/constants';
+
 
 export default function Users() {
     const { user: currentUser, isLoading } = useSupabase();
@@ -18,6 +20,9 @@ export default function Users() {
     const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+
+    const [postAdminModalOpen, setPostAdminModalOpen] = useState(false);
+    const [userToEdit, setUserToEdit] = useState<Profile | null>(null);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +97,12 @@ export default function Users() {
         setUserToToggle(user);
         setIsAdmin(isAdmin);
         setAdminToggleModalOpen(true);
+    };
+
+    const handlePostAdminChange = (user: Profile) => {
+        const latestUser = users.find(u => u.id === user.id) || user;
+        setUserToEdit({ ...latestUser });
+        setPostAdminModalOpen(true);
     };
 
     const confirmAdminToggle = async () => {
@@ -319,6 +330,7 @@ export default function Users() {
                                                 <th><b>Post</b></th>
                                                 <th><b>IBAN</b></th>
                                                 <th><b>Admin</b></th>
+                                                <th><b>Post Admin</b></th>
                                                 <th><b>Actions</b></th>
                                             </tr>
                                         </thead>
@@ -335,6 +347,15 @@ export default function Users() {
                                                             onChange={(e) => handleAdminToggle(user, e.target.checked)}
                                                             className="h-5 w-5"
                                                         />
+                                                    </td>
+                                                    <td>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="xs"
+                                                            onClick={() => handlePostAdminChange(user)}
+                                                        >
+                                                            {user.allowed_posts || 'None'}
+                                                        </Button>
                                                     </td>
                                                     <td>
                                                         <Group spacing="xs">
@@ -448,6 +469,76 @@ export default function Users() {
                     </Button>
                 </Group>
             </Modal>
+            {/* Admin Lite Toggle */}
+            <Modal
+                opened={postAdminModalOpen}
+                onClose={() => setPostAdminModalOpen(false)}
+                title={`Set post for ${userToEdit?.name}`}
+                centered
+                size="lg"
+                styles={{
+                    body: {
+                        minHeight: '400px', // adjust as needed
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                    },
+                }}
+            >
+                <Select
+                    label="Post"
+                    placeholder="Select post"
+                    data={[{ value: '', label: 'None' }, ...posts.map(post => ({ value: post, label: post }))]}
+                    value={userToEdit?.post || ''}
+                    onChange={(val) => {
+                        if (userToEdit) setUserToEdit({ ...userToEdit, post: val || null });
+                    }}
+                    clearable
+                />
+
+                <Group position="apart" mt="xl">
+                    <Button variant="outline" onClick={() => setPostAdminModalOpen(false)}>Cancel</Button>
+                    <Button
+                        color="vtk-yellow"
+                        onClick={async () => {
+                            if (!userToEdit) return;
+                            try {
+                                const response = await fetch('/api/updateUser', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        id: userToEdit.id,
+                                        allowed_posts: userToEdit.post || null,
+                                    }),
+                                });
+                                const result = await response.json();
+                                if (!response.ok) throw new Error(result.error || 'Failed to update post');
+                                notifications.show({
+                                    title: 'Success',
+                                    message: 'User post updated successfully',
+                                    color: 'green',
+                                });
+                                setUsers(prev =>
+                                    prev.map(u =>
+                                        u.id === userToEdit.id ? { ...u, allowed_posts: userToEdit.post || null } : u
+                                    )
+                                );
+                                setPostAdminModalOpen(false);
+                            } catch (error) {
+                                notifications.show({
+                                    title: 'Error',
+                                    message: error instanceof Error ? error.message : 'Failed to update post',
+                                    color: 'red',
+                                });
+                            }
+                        }}
+                    >
+                        Save
+                    </Button>
+                </Group>
+            </Modal>
+
+
 
             {/* Delete User Modal */}
             <Modal

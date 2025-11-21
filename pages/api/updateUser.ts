@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Update the user profile
         const { error, data } = await supabase
             .from('profiles')
-            .update({ name, post, iban })
+            .update({ name, post, iban, allowed_posts: req.body.allowed_posts })
             .eq('id', id)
             .select()
             .single();

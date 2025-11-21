@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Loader, Pagination, TextInput, Group, Select, NumberInput, Button, Box, Collapse, Chip, MediaQuery } from "@mantine/core";
-import { IBill } from "../types";
+import { IBill, Profile } from "../types";
 import BillListItem from "./BillListItem";
 import { AiOutlineSearch, AiOutlineFilter, AiOutlineClear } from "react-icons/ai";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
@@ -9,6 +9,7 @@ import Fuse from 'fuse.js';
 
 interface IBillList {
     adminMode?: boolean; // Indicates whether to fetch all bills (admin) or just user bills
+    currentUser: Profile;
 }
 
 // Interface for filter state
@@ -23,7 +24,7 @@ interface FilterState {
     booked: boolean;
 }
 
-export default function BillList({ adminMode = false }: IBillList) {
+export default function BillList({ adminMode = false, currentUser }: IBillList) {
     const [bills, setBills] = useState<IBill[]>([]);
     const [loading, setLoading] = useState(true);
     // Pagination states
@@ -49,6 +50,8 @@ export default function BillList({ adminMode = false }: IBillList) {
     const [startDateInput, setStartDateInput] = useState('');
     const [endDateInput, setEndDateInput] = useState('');
 
+    const isSuperAdmin = currentUser?.admin || false;
+    const allowedPost = currentUser?.allowed_posts || "";
     // Function to fetch bills
     const fetchBills = async () => {
         setLoading(true);
@@ -66,9 +69,17 @@ export default function BillList({ adminMode = false }: IBillList) {
                 }
                 setBills([]);
             } else {
-                const data = await response.json();
-                const fetchedBills = data.bills || [];
-                setBills(fetchedBills);
+                let data = await response.json();
+                let fetchedBills = data.bills || [];
+
+                // Filter for post-level admins
+                let filteredBills = [];
+                if (currentUser?.allowed_posts != null) {
+                    filteredBills = fetchedBills.filter((bill: IBill) => allowedPost.includes(bill.post));
+                } else {
+                    filteredBills = fetchedBills;
+                }
+                setBills(filteredBills);
 
                 // Extract unique values for filter dropdowns
                 if (fetchedBills.length > 0) {
@@ -86,7 +97,6 @@ export default function BillList({ adminMode = false }: IBillList) {
     // Fetch bills when component mounts
     useEffect(() => {
         fetchBills();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [adminMode]);
 
     // Update active filters indicator

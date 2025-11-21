@@ -23,7 +23,7 @@ export default function EditBill({ bill }: { bill: IBill }) {
     const amountRef = useRef<HTMLInputElement>(null);
     const ibanRef = useRef<HTMLInputElement>(null);
 
-    if (!user?.admin) {
+    if (!user?.admin && (user?.allowed_posts == null)) {
         return <p>Access Denied</p>
     }
 

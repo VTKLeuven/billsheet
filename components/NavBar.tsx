@@ -21,7 +21,7 @@ export default function NavBar() {
     }
 
     let adminLinks = new Map();
-    if (user?.admin) {
+    if (user?.admin || (user?.allowed_posts != null)) {
         adminLinks.set("All Bills", "/admin");
         adminLinks.set("Users", "/users");
     }
@@ -67,7 +67,7 @@ export default function NavBar() {
                                         </Link>
                                     ))}
 
-                                    {user?.admin && (
+                                    {(user?.admin|| (user?.allowed_posts != null)) && (
                                         <>
                                             <div className="h-6 border-l border-gray-300"></div>
                                             {Array.from(adminLinks).map(([name, path]) => (

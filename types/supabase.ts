@@ -61,6 +61,7 @@ export interface Database {
       }
       profiles: {
         Row: {
+          allowed_posts: string | null;
           admin: boolean | null
           iban: string | null
           id: string

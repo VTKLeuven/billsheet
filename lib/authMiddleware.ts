@@ -63,12 +63,24 @@ export async function requireAdmin(
 ): Promise<{ user: Profile | null; authorized: boolean }> {
     const { user, authorized } = await requireAuth(req, res);
 
-    if (!authorized) return { user: null, authorized: false };
+    if (!authorized || !user) return { user: null, authorized: false };
 
-    if (!user?.admin) {
-        res.status(403).json({ error: 'Access denied' });
-        return { user, authorized: false };
+    // Parse allowed_posts into an array
+    const allowedPosts = user.allowed_posts
+        ? user.allowed_posts.split(',').map(p => p.trim()).filter(Boolean)
+        : [];
+
+    // Full admin
+    if (user.admin) {
+        return { user, authorized: true };
     }
 
-    return { user, authorized: true };
+    // Post-level admin
+    if (allowedPosts.length > 0) {
+        return { user, authorized: true };
+    }
+
+    // Otherwise deny
+    res.status(403).json({ error: 'Access denied' });
+    return { user, authorized: false };
 }
