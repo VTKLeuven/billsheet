@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const bill = bills[0];
 
         // Only allow users to download their own bills unless they're an admin
-        if (bill.uid !== user?.id && !user?.admin) {
+        if (bill.uid !== user?.id && !user?.admin && (user?.allowed_posts == null)) {
             return res.status(403).json({ error: "Access denied" });
         }
 
