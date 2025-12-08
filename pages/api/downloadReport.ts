@@ -181,19 +181,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(500).json({ error: "Unknown file type." })
         }
 
+        const rotate = req.query.rotate === '-90' ? -90 : 0;
+
         if (image !== null) {
-            const maxWidth = 580;
-            const maxHeight = 570;
-            const scaledDims = image.scaleToFit(maxWidth, maxHeight);
-            const x = (590 - scaledDims.width) / 2;
-            const y = page.getHeight() - scaledDims.height - 220; // 20pt margin from top
+            const scaledDims = image.scaleToFit(580, 570);
+            if (rotate === -90) {
             page.drawImage(image, {
-                x,
-                y,
+                x: (590 - scaledDims.height) / 2,
+                y: 590,
                 width: scaledDims.width,
-                height: scaledDims.height
+                height: scaledDims.height,
+                rotate: degrees(rotate)
             });
+            } else {
+            page.drawImage(image, {
+                x: (590 - scaledDims.width) / 2,
+                y: (600 - scaledDims.height) / 2,
+                width: scaledDims.width,
+                height: scaledDims.height,
+            });
+            }
         }
+
+
 
         const pdfBytes = await doc.save()
         const downloadName = replaceBadCharacters(`${getAcademicYearTag(billDate)}_${bill.post}_${bill.activity}_${bill.desc}_${bill.amount / 100}.pdf`);

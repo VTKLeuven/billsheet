@@ -18,6 +18,12 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [rotate, setRotate] = useState<0 | 90>(0);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+
+
 
     async function handlePaidChange(e: any) {
         if (!adminMode) return;
@@ -62,26 +68,32 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     async function handleDownload() {
         setIsDownloading(true);
         try {
-            const response = await fetch(`/api/downloadReport?id=${bill.id}`);
-            if (!response.ok) throw new Error("Download failed");
+            const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${rotate}`);
+            if (!response.ok) throw new Error("Failed to fetch report");
 
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const contentDisposition = response.headers.get('Content-Disposition');
-            const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : `${bill.desc}.pdf`;
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            setPdfBlob(blob);
+            setShowPreviewModal(true);
         } catch (error) {
             console.error(error);
-            notifications.show({ title: 'Error', message: 'Failed to download report' });
+            notifications.show({ title: "Error", message: "Failed to preview report" });
         } finally {
             setIsDownloading(false);
         }
     }
+
+    function handleConfirmDownload() {
+        if (!pdfBlob) return;
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${bill.desc}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url); // clean up
+    }
+
 
     async function handleDelete() {
         if (!adminMode) return;
@@ -187,6 +199,58 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                         </div>
                     </Card.Section>
                 </Card>
+                <Modal
+                opened={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                size="xl"
+                centered
+                title={<Text weight={700} size="lg">Preview Report</Text>}
+                padding="lg"
+            >
+                {/* Top button group */}
+                <Group position="apart" mb="md">
+                    <Group spacing="sm">
+                        <Button onClick={handleConfirmDownload} disabled={isDownloading}>
+                            Download
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                // toggle rotation
+                                const newRotate = rotate === 0 ? 90 : 0;
+                                setRotate(newRotate);
+
+                                // refetch PDF with new rotation
+                                setIsDownloading(true);
+                                try {
+                                    const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${newRotate}`);
+                                    if (!response.ok) throw new Error("Failed to fetch rotated report");
+
+                                    const blob = await response.blob();
+                                    setPdfBlob(blob);
+                                } catch (error) {
+                                    console.error(error);
+                                    notifications.show({ title: "Error", message: "Failed to rotate report" });
+                                } finally {
+                                    setIsDownloading(false);
+                                }
+                            }}
+                        >
+                            Rotate 90°
+                        </Button>
+                    </Group>
+
+                    <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
+                        Close
+                    </Button>
+                </Group>
+
+                {/* Optional PDF preview removed for mobile */}
+                <Text align="center" color="dimmed">
+                    Use the buttons above to download or rotate the report.
+                </Text>
+            </Modal>
+
 
                 <Modal opened={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Confirm Deletion" centered>
                     <div>
@@ -247,6 +311,66 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                     <button onClick={() => setShowDeleteModal(true)}><AiOutlineDelete /></button>
                 </td>
             )}
+            <Modal
+                opened={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                size="xl"
+                centered
+                title={<Text weight={700} size="lg">Preview Report</Text>}
+                padding="lg"
+            >
+                {/* Top button group */}
+                <Group position="apart" mb="md">
+                    <Group spacing="sm">
+                        <Button onClick={handleConfirmDownload} disabled={isDownloading}>
+                            Download
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                const newRotate = rotate === 0 ? -90 : 0;
+                                setRotate(newRotate);
+
+                                setIsDownloading(true);
+                                try {
+                                    const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${newRotate}`);
+                                    if (!response.ok) throw new Error("Failed to fetch rotated report");
+
+                                    const blob = await response.blob();
+                                    setPdfBlob(blob);
+                                } catch (error) {
+                                    console.error(error);
+                                    notifications.show({ title: "Error", message: "Failed to rotate report" });
+                                } finally {
+                                    setIsDownloading(false);
+                                }
+                            }}
+                        >
+                            Rotate 90°
+                        </Button>
+                    </Group>
+
+                    <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
+                        Close
+                    </Button>
+                </Group>
+
+                {/* PDF preview */}
+                {pdfBlob ? (
+                    <iframe
+                        src={window.URL.createObjectURL(pdfBlob)}
+                        style={{
+                            width: '100%',
+                            height: '80vh', // keep the height relative to modal
+                            border: 'none',
+                        }}
+                    />
+                ) : (
+                    <Text align="center" color="dimmed">Loading preview...</Text>
+                )}
+            </Modal>
+
+
 
             <Modal opened={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Confirm Deletion" centered>
                 <div>
