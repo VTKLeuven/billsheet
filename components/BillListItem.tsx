@@ -217,7 +217,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                             variant="outline"
                             onClick={async () => {
                                 // toggle rotation
-                                const newRotate = rotate === 0 ? 90 : 0;
+                                const newRotate = rotate === 0 ? -90 : 0;
                                 setRotate(newRotate);
 
                                 // refetch PDF with new rotation
@@ -346,7 +346,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                                 }
                             }}
                         >
-                            Rotate 90°
+                            Rotate -90°
                         </Button>
                     </Group>
 
