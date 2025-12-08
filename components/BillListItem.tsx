@@ -19,7 +19,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [rotate, setRotate] = useState<0 | 90>(0);
+    const [rotate, setRotate] = useState<0 | -90>(0);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
