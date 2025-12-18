@@ -22,6 +22,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     const [rotate, setRotate] = useState<0 | -90>(0);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+    const [pdfFilename, setPdfFilename] = useState("");
 
 
 
@@ -72,7 +73,14 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
             if (!response.ok) throw new Error("Failed to fetch report");
 
             const blob = await response.blob();
+
+            const contentDisposition = response.headers.get("Content-Disposition");
+            const filename = contentDisposition
+                ? contentDisposition.split("filename=")[1].replace(/"/g, "")
+                : `${bill.desc}.pdf`;
+
             setPdfBlob(blob);
+            setPdfFilename(filename);
             setShowPreviewModal(true);
         } catch (error) {
             console.error(error);
@@ -87,7 +95,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
         const url = window.URL.createObjectURL(pdfBlob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${bill.desc}.pdf`;
+        a.download = pdfFilename;
         document.body.appendChild(a);
         a.click();
         a.remove();
