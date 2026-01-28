@@ -19,7 +19,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [rotate, setRotate] = useState<0 | -90>(0);
+    const [rotate, setRotate] = useState<number>(0);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
     const [pdfFilename, setPdfFilename] = useState("");
@@ -225,7 +225,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                             variant="outline"
                             onClick={async () => {
                                 // toggle rotation
-                                const newRotate = rotate === 0 ? -90 : 0;
+                                const newRotate = (rotate - 90) % 360;
                                 setRotate(newRotate);
 
                                 // refetch PDF with new rotation
@@ -336,7 +336,7 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                         <Button
                             variant="outline"
                             onClick={async () => {
-                                const newRotate = rotate === 0 ? -90 : 0;
+                                const newRotate = (rotate - 90) % 360;
                                 setRotate(newRotate);
 
                                 setIsDownloading(true);

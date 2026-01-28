@@ -181,26 +181,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(500).json({ error: "Unknown file type." })
         }
 
-        const rotate = req.query.rotate === '-90' ? -90 : 0;
-
+        const rotate = Number(req.query.rotate) || 0;
+        // I apologize for this iterative AI gunk of an if statement that actually works really well for centering and rotating images
         if (image !== null) {
-            const scaledDims = image.scaleToFit(580, 570);
-            if (rotate === -90) {
+            // 1. Normalize angle to 0, 90, 180, 270
+            const angle = ((rotate % 360) + 360) % 360;
+            const isSideways = angle === 90 || angle === 270;
+
+            // 2. Scale image based on its final orientation
+            const scaledDims = image.scaleToFit(
+                isSideways ? 570 : 580,
+                isSideways ? 580 : 570
+            );
+
+            const { width, height } = scaledDims;
+
+            // 3. Define the center of the drawing area (Box: 590x600)
+            const centerX = 590 / 2;
+            const centerY = 600 / 2;
+
+            // 4. Calculate the X and Y for the bottom-left corner based on rotation
+            // This math offsets the "pivot" to keep the image centered
+            const rad = (angle * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            // This is the magic formula for rotating around a center point in PDF-lib
+            const drawX = centerX - (width / 2) * cos + (height / 2) * sin;
+            const drawY = centerY - (width / 2) * sin - (height / 2) * cos;
+
             page.drawImage(image, {
-                x: (590 - scaledDims.height) / 2,
-                y: 590,
-                width: scaledDims.width,
-                height: scaledDims.height,
-                rotate: degrees(rotate)
+                x: drawX,
+                y: drawY,
+                width,
+                height,
+                rotate: degrees(angle),
             });
-            } else {
-            page.drawImage(image, {
-                x: (590 - scaledDims.width) / 2,
-                y: (600 - scaledDims.height) / 2,
-                width: scaledDims.width,
-                height: scaledDims.height,
-            });
-            }
         }
 
 
