@@ -6,6 +6,7 @@ import { AiOutlineSearch, AiOutlineFilter, AiOutlineClear } from "react-icons/ai
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { FiCalendar } from "react-icons/fi";
 import Fuse from 'fuse.js';
+import { Popover, Text } from "@mantine/core";
 
 interface IBillList {
     adminMode?: boolean; // Indicates whether to fetch all bills (admin) or just user bills
@@ -27,6 +28,10 @@ interface FilterState {
 export default function BillList({ adminMode = false, currentUser }: IBillList) {
     const [bills, setBills] = useState<IBill[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Storage usage state
+    const [storageUsed, setStorageUsed] = useState<string>('');
+
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
@@ -93,6 +98,31 @@ export default function BillList({ adminMode = false, currentUser }: IBillList) 
             setLoading(false);
         }
     };
+
+    // Fetch Storage
+    useEffect(() => {
+        const fetchStorage = async () => {
+            // Only fetch if in admin mode
+            if (!adminMode) return;
+
+            try {
+                const res = await fetch('/api/getStorageSize');
+                if (res.ok) {
+                    const data = await res.json();
+                    const bytes = Number(data.size_bytes);
+
+                    const mb = (bytes / (1024 * 1024)).toFixed(2);
+                    const percent = (bytes / (1024 * 1024 * 1024)) * 100; // 1GB limit
+
+                    setStorageUsed(`${mb} MB (${percent.toFixed(1)}%)`);
+                }
+            } catch (err) {
+                console.error("Failed to load storage stats", err);
+            }
+        };
+
+        fetchStorage();
+    }, [adminMode]);
 
     // Fetch bills when component mounts
     useEffect(() => {
@@ -297,6 +327,39 @@ export default function BillList({ adminMode = false, currentUser }: IBillList) 
             <h1 className="text-2xl lg:text-3xl font-bold border-b-8 border-vtk-yellow">
                 {adminMode ? 'All Bills' : 'My Bills'}
             </h1>
+            {/* Only show storage if in Admin Mode and data is loaded */}
+            {/* Only show storage if in Admin Mode and data is loaded */}
+            {/* Only show storage if in Admin Mode and data is loaded */}
+            {adminMode && storageUsed && (
+                <Popover width={300} position="bottom-end" withArrow shadow="md">
+                    <Popover.Target>
+            <span
+                className="font-mono text-sm md:text-base pb-1 cursor-pointer underline decoration-dotted underline-offset-4 hover:opacity-80 transition-opacity"
+            >
+                <span className="text-gray-600">Storage: </span>
+                <span className={
+                    parseFloat(storageUsed.match(/\(([^)]+)%\)/)?.[1] || '0') > 80
+                        ? "text-red-600 font-bold"
+                        : "text-gray-800"
+                }>
+                    {storageUsed}
+                </span>
+            </span>
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                        <Text size="sm" weight={700} mb={5}>
+                            Storage Quota (1 GB Limit)
+                        </Text>
+                        <Text size="xs" color="dimmed">
+                            Your plan includes 1000 MB of file storage.
+                            <br /><br />
+                            <strong>Current Status:</strong> You are using {storageUsed}.
+                            <br /><br />
+                            ⚠️ <strong>Warning:</strong> If you exceed 100%, Supabase will lock the project entirely and require payment to restore access. Please clean up old files if this turns red.
+                        </Text>
+                    </Popover.Dropdown>
+                </Popover>
+            )}
 
             {/* Search and filter section - keep responsive */}
             <div className="mb-6 mt-4">
