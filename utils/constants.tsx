@@ -27,6 +27,7 @@ export const posts = [
     "IAESTE",
     "Mechanix",
     "Revue",
+    "Lolploeg",
 ];
 
 export const allowedEmailDomains = [
