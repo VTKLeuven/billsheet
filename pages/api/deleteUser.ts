@@ -9,7 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Check if user is admin and get the current user
     const { authorized, user: currentUser } = await requireAdmin(req, res);
-    if (!authorized || !currentUser) return;
+    if (!authorized || !currentUser?.admin) {
+        return res.status(403).json({ error: 'Super admin access required' });
+    }
 
     try {
         const supabase = createAdminClient();

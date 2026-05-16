@@ -78,11 +78,12 @@ export default function BillList({ adminMode = false, currentUser }: IBillList) 
                 let fetchedBills = data.bills || [];
 
                 // Filter for post-level admins
-                let filteredBills = [];
-                if (currentUser?.allowed_posts != null) {
-                    filteredBills = fetchedBills.filter((bill: IBill) => allowedPost.includes(bill.post));
-                } else {
-                    filteredBills = fetchedBills;
+                let filteredBills = fetchedBills;
+                if (adminMode && !isSuperAdmin && currentUser?.allowed_posts) {
+                    const allowedPostsArray = currentUser.allowed_posts.split(',').map(p => p.trim()).filter(Boolean);
+                    if (allowedPostsArray.length > 0) {
+                        filteredBills = fetchedBills.filter((bill: IBill) => allowedPostsArray.includes(bill.post));
+                    }
                 }
                 setBills(filteredBills);
 

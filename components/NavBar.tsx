@@ -21,8 +21,11 @@ export default function NavBar() {
     }
 
     let adminLinks = new Map();
-    if (user?.admin || (user?.allowed_posts != null)) {
+    const isPostAdmin = user?.allowed_posts && user.allowed_posts.trim().length > 0;
+    if (user?.admin || isPostAdmin) {
         adminLinks.set("All Bills", "/admin");
+    }
+    if (user?.admin) {
         adminLinks.set("Users", "/users");
     }
 
@@ -67,7 +70,7 @@ export default function NavBar() {
                                         </Link>
                                     ))}
 
-                                    {(user?.admin|| (user?.allowed_posts != null)) && (
+                                    {(user?.admin || isPostAdmin) && (
                                         <>
                                             <div className="h-6 border-l border-gray-300"></div>
                                             {Array.from(adminLinks).map(([name, path]) => (
@@ -167,7 +170,7 @@ export default function NavBar() {
                                 </Box>
                             ))}
 
-                            {user?.admin && (
+                            {(user?.admin || isPostAdmin) && (
                                 <>
                                     <Divider my="sm" label="Admin" labelPosition="center" />
                                     {Array.from(adminLinks).map(([name, path]) => (
