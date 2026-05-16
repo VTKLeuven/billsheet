@@ -148,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const subject = `[BILL] ${bill.post} - ${bill.name}`;
-        const textBody = `Hi,\n\nThis automatic email contains the bill ${bill.name} from post ${bill.post}.\n\nKind regards.`;
+        const textBody = `Hi,\n\nThis automatic email contains the Bill: < ${bill.name} > from post < ${bill.post} > .\n\nKind regards.`;
         
         const { data, error: resendError } = await resend.emails.send({
             from: 'onboarding@resend.dev', // Using Resend's default sender if no domain is configured
