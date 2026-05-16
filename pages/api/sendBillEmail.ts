@@ -152,7 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         const { data, error: resendError } = await resend.emails.send({
             from: 'onboarding@resend.dev', // Using Resend's default sender if no domain is configured
-            to: 'it@vtk.be',
+            to: 'beheer@vtk.be',
             subject: subject,
             text: textBody,
             attachments: [
