@@ -35,3 +35,6 @@ export const allowedEmailDomains = [
     "@bestleuven.eu",
     "@best-eu.org"
 ];
+
+export const DEST_MAIL_ADDRESS = "aankoop-0479482282@my.dkpa.be";
+export const SOURCE_MAIL_ADDR = "beheer@vtk.be";

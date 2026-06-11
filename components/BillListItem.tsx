@@ -1,9 +1,11 @@
-import { Checkbox, Modal, Button, Group, Badge, Tooltip, Card, Text, Box } from "@mantine/core";
+import { Checkbox, Modal, Button, Group, Badge, Tooltip, Card, Text, Box, TextInput } from "@mantine/core";
 import { IBill } from "../types";
 import { AiFillEdit, AiOutlineDownload, AiOutlineDelete, AiOutlineMail } from "react-icons/ai";
 import { useState } from "react";
 import Link from "next/link";
 import { notifications } from "@mantine/notifications";
+import { DEST_MAIL_ADDRESS } from "../utils/constants";
+import BillReportPreviewModal from "./BillReportPreviewModal";
 
 interface IBillListItem {
     bill: IBill;
@@ -15,34 +17,31 @@ interface IBillListItem {
 export default function BillListItem({ bill, onDelete, adminMode = false, isMobile = false }: IBillListItem) {
     const [paid, setPaid] = useState(bill.paid);
     const [booked, setBooked] = useState(bill.booked);
-    const [isDownloading, setIsDownloading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [rotate, setRotate] = useState<number>(0);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-    const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-    const [pdfFilename, setPdfFilename] = useState("");
+    const [showDownloadPreview, setShowDownloadPreview] = useState(false);
+    const [showEmailPreview, setShowEmailPreview] = useState(false);
+    const [emailRecipient, setEmailRecipient] = useState(DEST_MAIL_ADDRESS);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
-    const [showEmailModal, setShowEmailModal] = useState(false);
 
-    async function handleSendEmail() {
-        setShowEmailModal(false);
-        if (!adminMode) return;
+    async function handleSendEmail(recipient: string, rotate = 0) {
+        if (!adminMode) return false;
         setIsSendingEmail(true);
         try {
             const response = await fetch("/api/sendBillEmail", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: bill.id }),
+                body: JSON.stringify({ id: bill.id, to: recipient, rotate }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Failed to send email");
             
-            notifications.show({ title: 'Success', message: 'Email sent successfully to beheer@vtk.be', color: 'green' });
+            notifications.show({ title: 'Success', message: `Email sent successfully to ${recipient}`, color: 'green' });
+            return true;
         } catch (error: any) {
             console.error(error);
             notifications.show({ title: 'Error', message: error.message || 'Failed to send email', color: 'red' });
+            return false;
         } finally {
             setIsSendingEmail(false);
         }
@@ -90,43 +89,6 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
         }
     }
 
-    async function handleDownload() {
-        setIsDownloading(true);
-        try {
-            const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${rotate}`);
-            if (!response.ok) throw new Error("Failed to fetch report");
-
-            const blob = await response.blob();
-
-            const contentDisposition = response.headers.get("Content-Disposition");
-            const filename = contentDisposition
-                ? contentDisposition.split("filename=")[1].replace(/"/g, "")
-                : `${bill.desc}.pdf`;
-
-            setPdfBlob(blob);
-            setPdfFilename(filename);
-            setShowPreviewModal(true);
-        } catch (error) {
-            console.error(error);
-            notifications.show({ title: "Error", message: "Failed to preview report" });
-        } finally {
-            setIsDownloading(false);
-        }
-    }
-
-    function handleConfirmDownload() {
-        if (!pdfBlob) return;
-        const url = window.URL.createObjectURL(pdfBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = pdfFilename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url); // clean up
-    }
-
-
     async function handleDelete() {
         if (!adminMode) return;
         setIsDeleting(true);
@@ -146,6 +108,53 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
     }
 
     const editDisabled = paid;
+
+    const downloadPreviewModal = (
+        <BillReportPreviewModal
+            opened={showDownloadPreview}
+            billId={bill.id}
+            title="Preview Report"
+            description="Review the generated report before downloading it."
+            primaryLabel="Download"
+            primaryActionColor="blue"
+            onClose={() => setShowDownloadPreview(false)}
+            onPrimaryAction={({ blob, filename }) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                return true;
+            }}
+        />
+    );
+
+    const emailPreviewModal = (
+        <BillReportPreviewModal
+            opened={showEmailPreview}
+            billId={bill.id}
+            title="Preview Email Attachment"
+            description={`Review the report before sending it to ${emailRecipient}.`}
+            primaryLabel="Send email"
+            primaryActionColor="dark"
+            primaryActionLoading={isSendingEmail}
+            onClose={() => setShowEmailPreview(false)}
+            onPrimaryAction={({ rotate }) => handleSendEmail(emailRecipient, rotate)}
+            extraContent={
+                <div className="mb-4">
+                    <TextInput
+                        label="Send to"
+                        value={emailRecipient}
+                        onChange={(event) => setEmailRecipient(event.currentTarget.value)}
+                        type="email"
+                    />
+                </div>
+            }
+        />
+    );
 
     // Mobile Card view
     if (isMobile) {
@@ -214,24 +223,17 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                                 </Tooltip>
                             )}
 
-                            <button onClick={handleDownload} disabled={isDownloading} className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white ${isDownloading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                                {isDownloading ? (
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                ) : <AiOutlineDownload size={16} />}
+                            <button onClick={() => setShowDownloadPreview(true)} className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <AiOutlineDownload size={16} />
                             </button>
 
                             {adminMode && (
                                 <>
-                                    <button onClick={() => setShowEmailModal(true)} disabled={isSendingEmail} className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white ${isSendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'}`}>
-                                        {isSendingEmail ? (
-                                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                        ) : <AiOutlineMail size={16} />}
+                                    <button onClick={() => {
+                                        setEmailRecipient(DEST_MAIL_ADDRESS);
+                                        setShowEmailPreview(true);
+                                    }} disabled={isSendingEmail} className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white ${isSendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'}`}>
+                                        <AiOutlineMail size={16} />
                                     </button>
                                     <button onClick={() => setShowDeleteModal(true)} className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
                                         <AiOutlineDelete size={16} />
@@ -241,57 +243,8 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                         </div>
                     </Card.Section>
                 </Card>
-                <Modal
-                opened={showPreviewModal}
-                onClose={() => setShowPreviewModal(false)}
-                size="xl"
-                centered
-                title={<Text weight={700} size="lg">Preview Report</Text>}
-                padding="lg"
-            >
-                {/* Top button group */}
-                <Group position="apart" mb="md">
-                    <Group spacing="sm">
-                        <Button onClick={handleConfirmDownload} disabled={isDownloading}>
-                            Download
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={async () => {
-                                // toggle rotation
-                                const newRotate = (rotate - 90) % 360;
-                                setRotate(newRotate);
-
-                                // refetch PDF with new rotation
-                                setIsDownloading(true);
-                                try {
-                                    const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${newRotate}`);
-                                    if (!response.ok) throw new Error("Failed to fetch rotated report");
-
-                                    const blob = await response.blob();
-                                    setPdfBlob(blob);
-                                } catch (error) {
-                                    console.error(error);
-                                    notifications.show({ title: "Error", message: "Failed to rotate report" });
-                                } finally {
-                                    setIsDownloading(false);
-                                }
-                            }}
-                        >
-                            Rotate 90°
-                        </Button>
-                    </Group>
-
-                    <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
-                        Close
-                    </Button>
-                </Group>
-
-                {/* Optional PDF preview removed for mobile */}
-                <Text align="center" color="dimmed">
-                    Use the buttons above to download or rotate the report.
-                </Text>
-            </Modal>
+                {downloadPreviewModal}
+                {emailPreviewModal}
 
 
                 <Modal opened={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Confirm Deletion" centered>
@@ -302,15 +255,6 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                         <Group position="right">
                             <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
                             <Button color="red" onClick={handleDelete} loading={isDeleting}>Delete</Button>
-                        </Group>
-                    </div>
-                </Modal>
-                <Modal opened={showEmailModal} onClose={() => setShowEmailModal(false)} title="Confirm Email" centered>
-                    <div>
-                        <p className="mb-4">Send email to beheer@vtk.be with bill {bill.name}?</p>
-                        <Group position="right">
-                            <Button variant="outline" onClick={() => setShowEmailModal(false)}>Cancel</Button>
-                            <Button color="dark" onClick={handleSendEmail} loading={isSendingEmail}>Send</Button>
                         </Group>
                     </div>
                 </Modal>
@@ -355,76 +299,23 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                 )}
             </td>
             <td>
-                <button onClick={handleDownload} disabled={isDownloading}><AiOutlineDownload /></button>
+                <button onClick={() => setShowDownloadPreview(true)}><AiOutlineDownload /></button>
             </td>
             {adminMode && (
                 <>
                     <td>
-                        <button onClick={() => setShowEmailModal(true)} disabled={isSendingEmail} className={isSendingEmail ? "opacity-50 cursor-not-allowed text-black" : "text-black"}><AiOutlineMail /></button>
+                        <button onClick={() => {
+                            setEmailRecipient(DEST_MAIL_ADDRESS);
+                            setShowEmailPreview(true);
+                        }} disabled={isSendingEmail} className={isSendingEmail ? "opacity-50 cursor-not-allowed text-black" : "text-black"}><AiOutlineMail /></button>
                     </td>
                     <td>
                         <button onClick={() => setShowDeleteModal(true)}><AiOutlineDelete /></button>
                     </td>
                 </>
             )}
-            <Modal
-                opened={showPreviewModal}
-                onClose={() => setShowPreviewModal(false)}
-                size="xl"
-                centered
-                title={<Text weight={700} size="lg">Preview Report</Text>}
-                padding="lg"
-            >
-                {/* Top button group */}
-                <Group position="apart" mb="md">
-                    <Group spacing="sm">
-                        <Button onClick={handleConfirmDownload} disabled={isDownloading}>
-                            Download
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={async () => {
-                                const newRotate = (rotate - 90) % 360;
-                                setRotate(newRotate);
-
-                                setIsDownloading(true);
-                                try {
-                                    const response = await fetch(`/api/downloadReport?id=${bill.id}&rotate=${newRotate}`);
-                                    if (!response.ok) throw new Error("Failed to fetch rotated report");
-
-                                    const blob = await response.blob();
-                                    setPdfBlob(blob);
-                                } catch (error) {
-                                    console.error(error);
-                                    notifications.show({ title: "Error", message: "Failed to rotate report" });
-                                } finally {
-                                    setIsDownloading(false);
-                                }
-                            }}
-                        >
-                            Rotate -90°
-                        </Button>
-                    </Group>
-
-                    <Button variant="outline" onClick={() => setShowPreviewModal(false)}>
-                        Close
-                    </Button>
-                </Group>
-
-                {/* PDF preview */}
-                {pdfBlob ? (
-                    <iframe
-                        src={window.URL.createObjectURL(pdfBlob)}
-                        style={{
-                            width: '100%',
-                            height: '80vh', // keep the height relative to modal
-                            border: 'none',
-                        }}
-                    />
-                ) : (
-                    <Text align="center" color="dimmed">Loading preview...</Text>
-                )}
-            </Modal>
+            {downloadPreviewModal}
+            {emailPreviewModal}
 
 
 
@@ -434,15 +325,6 @@ export default function BillListItem({ bill, onDelete, adminMode = false, isMobi
                     <Group position="right">
                         <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
                         <Button color="red" onClick={handleDelete} loading={isDeleting}>Delete</Button>
-                    </Group>
-                </div>
-            </Modal>
-            <Modal opened={showEmailModal} onClose={() => setShowEmailModal(false)} title="Confirm Email" centered>
-                <div>
-                    <p className="mb-4">Send email to beheer@vtk.be with bill {bill.name}?</p>
-                    <Group position="right">
-                        <Button variant="outline" onClick={() => setShowEmailModal(false)}>Cancel</Button>
-                        <Button color="dark" onClick={handleSendEmail} loading={isSendingEmail}>Send</Button>
                     </Group>
                 </div>
             </Modal>
